@@ -402,7 +402,17 @@ function updateProperties(geometry) {
     const input = $("prop-" + key);
     if (document.activeElement !== input) input.value = Math.round(box[key]);
     input.disabled = work.mode !== "free";
+    const range = $("prop-" + key + "-range");
+    const maximum = key === "x" ? PAPER_WIDTH - box.w
+      : key === "y" ? work.pageHeight - box.h
+      : key === "w" ? PAPER_WIDTH - box.x : work.pageHeight - box.y;
+    range.max = Math.max(Number(range.min), Math.floor(maximum));
+    range.value = Math.round(box[key]);
+    range.disabled = work.mode !== "free";
   }
+  document.querySelectorAll("[data-geometry-step]").forEach(button => {
+    button.disabled = work.mode !== "free";
+  });
   $("move-up").disabled = work.items.indexOf(item) === work.items.length - 1;
   $("move-down").disabled = work.items.indexOf(item) === 0;
   $("text-properties").classList.toggle("hidden", item.type !== "text");
@@ -419,10 +429,16 @@ function updateProperties(geometry) {
   if (item.type === "image") $("prop-image-fit").value = item.fit || "contain";
   if (item.type === "text") {
     $("prop-font-size").value = item.fontSize;
+    $("prop-font-size-range").value = item.fontSize;
     $("prop-font-family").value = item.fontFamily || "modern";
     $("prop-ink-thickness").value = normalizeTextThickness(item.inkThickness);
     $("prop-ink-thickness-value").textContent = `${normalizeTextThickness(item.inkThickness)} / 5`;
     $("prop-align").value = item.align;
+    document.querySelectorAll("[data-property-align]").forEach(button => {
+      const active = button.dataset.propertyAlign === item.align;
+      button.classList.toggle("active", active);
+      button.setAttribute("aria-pressed", String(active));
+    });
     $("prop-bold").checked = item.bold;
   }
 }
@@ -1040,6 +1056,30 @@ function bind() {
     box[key] = Number($("prop-" + key).value) || 0;
     Object.assign(item, clampBox(box, work.pageHeight)); render(); scheduleDraft();
   });
+  let geometryEditing = null;
+  for (const key of ["x", "y", "w", "h"]) {
+    const slider = $("prop-" + key + "-range");
+    slider.addEventListener("input", () => {
+      const item = selected(); if (!item || work.mode !== "free") return;
+      const value = Number(slider.value);
+      if (item[key] === value) return;
+      const id = item.id + ":" + key;
+      if (geometryEditing !== id) { checkpoint(); geometryEditing = id; }
+      const box = { x: item.x, y: item.y, w: item.w, h: item.h, [key]: value };
+      Object.assign(item, clampBox(box, work.pageHeight)); render(); scheduleDraft();
+    });
+    for (const event of ["change", "blur", "pointerup", "pointercancel"]) {
+      slider.addEventListener(event, () => { geometryEditing = null; });
+    }
+  }
+  document.querySelectorAll("[data-geometry-step]").forEach(button => button.addEventListener("click", event => {
+    const item = selected(); if (!item || work.mode !== "free") return;
+    const [key, sign] = button.dataset.geometryStep.split(":");
+    const input = $("prop-" + key);
+    const step = event.shiftKey ? 10 : 1;
+    input.value = (Number(input.value) || 0) + Number(sign) * step;
+    input.dispatchEvent(new Event("change", { bubbles: true }));
+  }));
   let opacityEditingId = null;
   $("prop-opacity").addEventListener("input", () => {
     const item = selected(); if (!item) return;
@@ -1065,6 +1105,34 @@ function bind() {
   }
   bindSelectedThickness("prop-ink-thickness", "inkThickness", normalizeTextThickness);
   bindSelectedThickness("prop-frame-width", "frameWidth", normalizeFrameWidth);
+  let fontSizeEditingId = null;
+  const fontSlider = $("prop-font-size-range");
+  fontSlider.addEventListener("input", () => {
+    const item = selected(); if (!item || item.type !== "text") return;
+    const value = Math.max(8, Math.min(100, Number(fontSlider.value) || 25));
+    if (item.fontSize === value) return;
+    if (fontSizeEditingId !== item.id) { checkpoint(); fontSizeEditingId = item.id; }
+    item.fontSize = value;
+    if (item.labelRole) { item.baseFontSize = value; fitLabelTextInside(item); }
+    else fitTextToBox(item);
+    render(); scheduleDraft();
+  });
+  for (const event of ["change", "blur", "pointerup", "pointercancel"]) {
+    fontSlider.addEventListener(event, () => { fontSizeEditingId = null; });
+  }
+  document.querySelectorAll("[data-font-step]").forEach(button => button.addEventListener("click", event => {
+    const item = selected(); if (!item || item.type !== "text") return;
+    const input = $("prop-font-size");
+    input.value = Math.max(8, Math.min(100, (Number(input.value) || item.fontSize) +
+      Number(button.dataset.fontStep) * (event.shiftKey ? 10 : 1)));
+    input.dispatchEvent(new Event("change", { bubbles: true }));
+  }));
+  document.querySelectorAll("[data-property-align]").forEach(button => button.addEventListener("click", () => {
+    const item = selected(); if (!item || item.type !== "text") return;
+    if (item.align === button.dataset.propertyAlign) return;
+    $("prop-align").value = button.dataset.propertyAlign;
+    $("prop-align").dispatchEvent(new Event("change", { bubbles: true }));
+  }));
   $("prop-frame-style").addEventListener("change", () => {
     const item = selected(), style = $("prop-frame-style").value;
     if (!item || item.type !== "frame" || !LABEL_FRAMES.includes(style) || style === "none") return;

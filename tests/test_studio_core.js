@@ -69,11 +69,19 @@ for (const page of ['studio.html', 'studio_alt.html']) {
   for (const id of ['create-label', 'add-frame', 'label-font', 'label-title', 'label-subtitle',
     'prop-font-family', 'text-font-family', 'prop-opacity', 'prop-opacity-value',
     'prop-frame-style', 'frame-properties', 'text-ink-thickness', 'prop-ink-thickness',
-    'label-frame-width', 'prop-frame-width', 'clear-project']) {
+    'label-frame-width', 'prop-frame-width', 'clear-project',
+    'prop-x-range', 'prop-y-range', 'prop-w-range', 'prop-h-range',
+    'prop-font-size-range']) {
     assert.ok(html.includes(`id="${id}"`), `${page}: missing ${id}`);
   }
   for (const size of Object.keys(LABEL_SIZES)) assert.ok(html.includes(`data-label-size="${size}"`));
   for (const frame of LABEL_FRAMES) assert.ok(html.includes(`data-label-frame="${frame}"`));
+  for (const key of ['x', 'y', 'w', 'h']) {
+    assert.ok(html.includes(`data-geometry-step="${key}:-1"`));
+    assert.ok(html.includes(`data-geometry-step="${key}:1"`));
+  }
+  for (const direction of ['left', 'center', 'right'])
+    assert.ok(html.includes(`data-property-align="${direction}"`));
 }
 assert.ok(source.includes('createUuidV4()'));
 assert.ok(source.includes('clipboardData'));

@@ -48,6 +48,26 @@
 .thickness-heading output { color: #5f80bc; font-size: 11px; font-weight: 700; font-variant-numeric: tabular-nums; }
 .thickness-control input[type="range"] { display: block; width: 100%; margin: 10px 0 6px; accent-color: #6e92d1; }
 .thickness-control small { display: block; color: #7d8a9a; font-size: 10px; line-height: 1.45; }
+.geometry-grid { gap: 13px 9px; }
+.geometry-control { min-width: 0; }
+.geometry-control > label, .font-size-control > label, .alignment-control > span { display: block; margin-bottom: 6px; font-size: 10px; color: #8792a0; }
+.geometry-stepper { display: grid; grid-template-columns: 25px minmax(0, 1fr) 25px; align-items: stretch; gap: 2px; }
+.geometry-stepper input[type="number"] { width: 100%; min-width: 0; height: 34px; margin: 0; padding: 5px 3px; text-align: center; font-variant-numeric: tabular-nums; -moz-appearance: textfield; appearance: textfield; }
+.geometry-stepper input::-webkit-inner-spin-button, .font-size-stepper input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.geometry-stepper button, .font-size-stepper button { min-width: 0; padding: 0; border: 1px solid #cbd5e3; border-radius: 5px; color: #57729b; background: #eef3f9; cursor: pointer; font-size: 14px; font-weight: 650; }
+.geometry-stepper button:disabled, .font-size-stepper button:disabled { opacity: .4; cursor: not-allowed; }
+.geometry-stepper button:not(:disabled):hover, .font-size-stepper button:not(:disabled):hover { background: #e0eaf7; border-color: #8da6d0; }
+.property-grid.geometry-grid input[type="range"], .font-size-control input[type="range"] { display: block; width: 100%; height: 16px; min-height: 0; margin: 9px 0 0; padding: 0; border: 0; background: transparent; accent-color: #7396d6; cursor: pointer; }
+.property-grid.geometry-grid input[type="range"]:disabled { opacity: .45; cursor: not-allowed; }
+.font-size-control { margin: 16px 0 13px; }
+.font-size-stepper { display: grid; grid-template-columns: 34px minmax(0, 1fr) 34px; gap: 5px; }
+.font-size-stepper input[type="number"] { display: block; width: 100%; height: 35px; min-width: 0; margin: 0; text-align: center; background: #fff; border: 1px solid #dce3eb; border-radius: 6px; color: #435064; font-variant-numeric: tabular-nums; }
+.alignment-control { margin: 14px 0 17px; }
+.alignment-buttons { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 4px; }
+.alignment-buttons button { min-height: 32px; padding: 6px 3px; border: 1px solid #dce3eb; background: #f7f9fc; border-radius: 5px; color: #64748b; cursor: pointer; font-size: 11px; }
+.alignment-buttons button.active { background: #dfe9fa; border-color: #7999d3; color: #315a9c; font-weight: 700; }
+.alignment-buttons button:not(.active):hover { background: #eaf0f9; }
+.property-visually-hidden { position: absolute; width: 1px!important; height: 1px!important; padding: 0!important; margin: -1px!important; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0!important; }
 .action-group button.clear-all-button { color: #bb6868; border-color: #9a58583b; }
 .action-group button.clear-all-button:hover:not(:disabled) { background: #982f2f22; color: #d36d6d; }
 .frame-properties { margin: 10px 0; }
@@ -71,6 +91,13 @@ html[data-theme="dark"] .opacity-control { border-color: #303945; }
 html[data-theme="dark"] .opacity-control small { color: #94a4b7; }
 html[data-theme="dark"] .thickness-control small { color: #94a4b7; }
 html[data-theme="dark"] .thickness-heading output { color: #9cb9ef; }
+html[data-theme="dark"] .geometry-control > label, html[data-theme="dark"] .font-size-control > label, html[data-theme="dark"] .alignment-control > span { color: #a9b8cb; }
+html[data-theme="dark"] .geometry-stepper button, html[data-theme="dark"] .font-size-stepper button { background: #283443; border-color: #465a74; color: #c2d6f6; }
+html[data-theme="dark"] .geometry-stepper button:not(:disabled):hover, html[data-theme="dark"] .font-size-stepper button:not(:disabled):hover { background: #364a64; }
+html[data-theme="dark"] .font-size-stepper input[type="number"] { background: #11161d; color: #e6e9ef; border-color: #3a4350; }
+html[data-theme="dark"] .alignment-buttons button { background: #1d2632; border-color: #3a4350; color: #b8c5d7; }
+html[data-theme="dark"] .alignment-buttons button.active { background: #354c70; border-color: #7697cf; color: #f0f5ff; }
+html[data-theme="dark"] .alignment-buttons button:not(.active):hover { background: #29384c; }
 html[data-theme="dark"] .action-group button.clear-all-button { color: #e99b9b; border-color: #8f565660; }
 html[data-theme="dark"] .action-group button.clear-all-button:hover:not(:disabled) { background: #8e393934; color: #ffc1c1; }
 html[data-theme="dark"] .frame-properties select { background: #11161d; color: #e6e9ef; border-color: #3a4350; }
