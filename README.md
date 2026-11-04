@@ -6,9 +6,18 @@ T02 Studio combines text, images, PDF extracts and QR codes into one 384-dot-wid
 
 ## Preview
 
+![T02 Studio label designer with a 50 x 80 mm Field Notes sample, stacked frames and an editable opacity slider](docs/screenshots/field-notes-editor.png)
+
+*Field Notes showcase: a tall 50 × 80 mm label with a double outer border, independent corners and ticket frames, Georgia/Courier typography, thicker small text, and a 75% opacity layer. The [editable project JSON](examples/field-notes-014.json) and [print-ready PNG](examples/field-notes-014-print.png) are included.*
+
+<details>
+<summary>Original free-edit preview</summary>
+
 ![T02 Studio dark free-edit workspace with a thermal-strip design and layer panel](docs/screenshots/t02-studio-editor.png)
 
 *Free-edit mode, with live preview, draggable paper edge, and layers. The sample text and third-party artwork shown in this user-supplied screenshot are illustrative content, not bundled editor assets or part of the software license.*
+
+</details>
 
 ## Interfaces
 
