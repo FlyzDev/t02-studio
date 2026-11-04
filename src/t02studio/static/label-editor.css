@@ -25,8 +25,26 @@
 .frame-double { border: 2px solid currentColor; outline: 1px solid currentColor; outline-offset: -7px; border-radius: 3px; }
 .frame-dashed { border: 2px dashed currentColor; border-radius: 3px; }
 .frame-corners { background: linear-gradient(currentColor,currentColor) left top/12px 2px no-repeat,linear-gradient(currentColor,currentColor) left top/2px 12px no-repeat,linear-gradient(currentColor,currentColor) right top/12px 2px no-repeat,linear-gradient(currentColor,currentColor) right top/2px 12px no-repeat,linear-gradient(currentColor,currentColor) left bottom/12px 2px no-repeat,linear-gradient(currentColor,currentColor) left bottom/2px 12px no-repeat,linear-gradient(currentColor,currentColor) right bottom/12px 2px no-repeat,linear-gradient(currentColor,currentColor) right bottom/2px 12px no-repeat; }
+.frame-solid { border: 3px solid currentColor; border-radius: 1px; }
+.frame-dotted { border: 3px dotted currentColor; border-radius: 2px; }
+.frame-scallop { border: 2px solid currentColor; border-radius: 40% 60% 40% 60% / 45% 55% 45% 55%; }
+.frame-ticket { border: 2px solid currentColor; clip-path: polygon(0 0,100% 0,100% 35%,92% 50%,100% 65%,100% 100%,0 100%,0 65%,8% 50%,0 35%); }
+.frame-deco { border: 4px double currentColor; }
+.frame-deco::after { content: '◆'; position: absolute; top: -9px; left: 50%; transform: translateX(-50%); font-size: 10px; }
+.frame-wavy { border: 2px solid currentColor; border-radius: 18% 10% 20% 12% / 18% 20% 14% 22%; transform: rotate(-2deg); }
 .frame-none { border: 1px solid #c9d0da; border-radius: 2px; }
 .frame-none::after { content: ''; position: absolute; left: 5px; top: 13px; width: 38px; height: 1px; background: #c9d0da; transform: rotate(-24deg); }
+.label-add-frame { width: 100%; min-height: 36px; margin-top: 12px; padding: 9px 12px; border: 1px solid #9aaed0; border-radius: 7px; color: #3e5f93; background: #edf3fc; font-size: 11px; font-weight: 700; cursor: pointer; }
+.label-add-frame:hover { background: #e3edfb; border-color: #6386c5; }
+.opacity-control { margin: 16px 0 13px; padding: 11px 0 12px; border-top: 1px solid #d8e0e9; border-bottom: 1px solid #d8e0e9; }
+.opacity-heading { display: flex; justify-content: space-between; align-items: center; font-size: 12px; font-weight: 650; }
+.opacity-heading label { margin: 0; font: inherit; }
+.opacity-heading output { font-size: 11px; font-variant-numeric: tabular-nums; }
+.opacity-control input[type="range"] { display: block; width: 100%; margin: 9px 0 6px; accent-color: #6e92d1; }
+.opacity-control small { display: block; font-size: 10px; line-height: 1.45; color: #7d8a9a; }
+.frame-properties { margin: 10px 0; }
+.frame-properties label { display: block; font-size: 11px; margin-bottom: 6px; }
+.frame-properties select { width: 100%; min-height: 35px; padding: 6px; border: 1px solid #dce3eb; border-radius: 6px; background: #fff; color: #3e4a5b; }
 .tool-panel .label-note, .label-note { font-size: 10px; color: #8d99a8; line-height: 1.65; margin-top: 13px; }
 .typeface-property-label { display: block; font-size: 10px; color: #8490a0; margin-top: 15px; }
 .typeface-property-select { display: block; width: 100%; margin-top: 6px; border: 1px solid #dce3eb; border-radius: 6px; padding: 8px; background: #fff; color: #435064; font-size: 11px; }
@@ -39,6 +57,11 @@ html[data-theme="dark"] .label-size-card small { color: #9cabbc; }
 html[data-theme="dark"] .label-size-symbol { color: #a2b6d6; }
 html[data-theme="dark"] .label-size-symbol.active, html[data-theme="dark"] .label-size-card.active .label-size-symbol { color: #88aaf1; }
 html[data-theme="dark"] .frame-sample { color: #bed0ea; }
+html[data-theme="dark"] .label-add-frame { background: #263952; color: #cbdafb; border-color: #607da9; }
+html[data-theme="dark"] .label-add-frame:hover { background: #304968; }
+html[data-theme="dark"] .opacity-control { border-color: #303945; }
+html[data-theme="dark"] .opacity-control small { color: #94a4b7; }
+html[data-theme="dark"] .frame-properties select { background: #11161d; color: #e6e9ef; border-color: #3a4350; }
 html[data-theme="dark"] .typeface-property-label { color: #a9b5c6; }
 html[data-theme="dark"] .typeface-property-select { background: #11161d; color: #e6e9ef; border-color: #3a4350; }
 html[data-theme="dark"] .label-note { color: #94a4b7; }

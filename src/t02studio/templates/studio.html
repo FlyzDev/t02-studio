@@ -72,8 +72,16 @@
           <button type="button" class="label-frame-card" data-label-frame="double"><span class="frame-sample frame-double"></span><small>Double</small></button>
           <button type="button" class="label-frame-card" data-label-frame="dashed"><span class="frame-sample frame-dashed"></span><small>Stitched</small></button>
           <button type="button" class="label-frame-card" data-label-frame="corners"><span class="frame-sample frame-corners"></span><small>Corners</small></button>
+          <button type="button" class="label-frame-card" data-label-frame="solid"><span class="frame-sample frame-solid"></span><small>Classic</small></button>
+          <button type="button" class="label-frame-card" data-label-frame="dotted"><span class="frame-sample frame-dotted"></span><small>Dotted</small></button>
+          <button type="button" class="label-frame-card" data-label-frame="scallop"><span class="frame-sample frame-scallop"></span><small>Scalloped</small></button>
+          <button type="button" class="label-frame-card" data-label-frame="ticket"><span class="frame-sample frame-ticket"></span><small>Ticket</small></button>
+          <button type="button" class="label-frame-card" data-label-frame="deco"><span class="frame-sample frame-deco"></span><small>Art Deco</small></button>
+          <button type="button" class="label-frame-card" data-label-frame="wavy"><span class="frame-sample frame-wavy"></span><small>Wavy</small></button>
           <button type="button" class="label-frame-card" data-label-frame="none"><span class="frame-sample frame-none"></span><small>None</small></button>
         </div>
+        <button id="add-frame" class="label-add-frame" type="button">+ Add independent frame layer</button>
+        <p class="label-note">Add multiple frames, move them in Free edit, and stack them behind or in front of text.</p>
         <label for="label-font" class="gap-top">Typeface</label><select id="label-font"><option value="modern">Modern · Segoe UI</option><option value="classic">Classic · Georgia</option><option value="rounded">Friendly · Trebuchet</option><option value="editorial">Editorial · Palatino</option><option value="typewriter">Typewriter · Courier</option><option value="display">Bold display · Impact</option></select>
         <label for="label-title" class="gap-top">Headline</label><input id="label-title" type="text" maxlength="90" value="MADE WITH LOVE" placeholder="Your label title">
         <label for="label-subtitle" class="gap-top">Secondary line</label><input id="label-subtitle" type="text" maxlength="140" value="A little something special" placeholder="Optional detail">
@@ -119,6 +127,7 @@
           <div id="selection-properties" class="selection-properties hidden">
             <h3>Selected item <span class="rotation-value" id="rotation-value">0°</span></h3>
             <div class="property-grid"><label>X <input id="prop-x" type="number" min="0"></label><label>Y <input id="prop-y" type="number" min="0"></label><label>Width <input id="prop-w" type="number" min="1"></label><label>Height <input id="prop-h" type="number" min="1"></label></div>
+            <div class="opacity-control"><div class="opacity-heading"><label for="prop-opacity">Opacity</label><output id="prop-opacity-value" for="prop-opacity">100%</output></div><input id="prop-opacity" type="range" min="0" max="100" step="1" value="100"><small>Applies to preview, PNG and print.</small></div>
             <div class="text-properties hidden" id="text-properties">
               <div class="property-grid"><label>Font size <input id="prop-font-size" type="number" min="8" max="100"></label><label>Alignment <select id="prop-align"><option value="left">Left</option><option value="center">Center</option><option value="right">Right</option></select></label></div>
               <label for="prop-font-family" class="typeface-property-label">Typeface</label><select id="prop-font-family" class="typeface-property-select"><option value="modern">Modern · Segoe UI</option><option value="classic">Classic · Georgia</option><option value="rounded">Friendly · Trebuchet</option><option value="editorial">Editorial · Palatino</option><option value="typewriter">Typewriter · Courier</option><option value="display">Bold display · Impact</option></select>
@@ -126,6 +135,7 @@
               <button id="edit-text" class="secondary-button" type="button">✎ Edit text</button>
             </div>
             <div class="text-properties hidden" id="image-properties"><label class="image-fit-label">Image fit<select id="prop-image-fit"><option value="contain">Keep proportions</option><option value="cover">Crop to fill</option><option value="stretch">Stretch</option></select></label></div>
+            <div class="frame-properties hidden" id="frame-properties"><label for="prop-frame-style">Frame style</label><select id="prop-frame-style"><option value="rounded">Rounded</option><option value="double">Double</option><option value="dashed">Stitched</option><option value="corners">Corners</option><option value="solid">Classic</option><option value="dotted">Dotted</option><option value="scallop">Scalloped</option><option value="ticket">Ticket</option><option value="deco">Art Deco</option><option value="wavy">Wavy</option></select></div>
             <div class="action-group tiny"><button id="move-up" type="button">↑ Bring forward</button><button id="move-down" type="button">↓ Send backward</button></div>
             <p class="properties-help">Drag in Free edit mode, resize from bottom right, double-click to edit text.</p>
           </div>

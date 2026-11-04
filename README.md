@@ -25,10 +25,12 @@ All three interfaces use the same local backend. The alternate design is native 
 Open **Label designer** from the left sidebar to start with a ready-to-edit label:
 
 - Three presets: **50 × 30**, **50 × 50**, and **50 × 80 mm**.
-- Five monochrome frame styles: no frame, rounded, double, stitched, or corner accents.
+- Eleven monochrome frame choices: no frame, rounded, double, stitched, corners, classic, dotted, scalloped, ticket, Art Deco, and wavy.
+- **Add independent frame layer** creates another resizable frame over the same canvas. Stack, duplicate, reorder or delete frame layers individually; click their border or select them from Layers to edit their style.
 - Six offline system-font families, including editorial serif, rounded, bold display, and typewriter. Each text layer can change its typeface independently.
 - Editable headline and secondary line; labels open directly in Free edit for repositioning and resizing. Changing a preset or frame can update an existing label.
-- Frames, dimensions, and font choices persist in project JSON and are rendered identically to the PNG/print path.
+- Every text, image, PDF/QR image and frame layer has an **Opacity (0–100%)** slider. Partially transparent ink is composited against the paper's white background; the resulting gray levels are dithered for the monochrome printer.
+- Frames, per-layer opacity, dimensions, and font choices persist in project JSON and are rendered through the same canvas path for on-screen preview, PNG, and print. Version-2 projects without opacity values continue to render as fully opaque.
 
 These are layout presets for **53 mm continuous-roll paper** with approximately 50 mm of artwork width. They are not calibration profiles for precut die-cut stickers or separate label media. Font appearance may vary if another computer does not have the same desktop fonts; exporting a PNG rasterizes the chosen appearance.
 
@@ -71,7 +73,7 @@ If needed, create a **narrow Windows Firewall inbound rule** for only that PC's 
 - Compose a long strip from multiple blocks (text, image, PDF segment, QR).
 - Discover paired Windows serial ports, identify likely T02 entries, and remember the selected outgoing COM port per browser. Supports multiple LAN clients selecting ports independently.
 - Flow and free-layout modes; clipboard image paste and drag/drop.
-- Label designer presets, decorative frames, and typography controls, with no external font CDN requirement.
+- Label designer presets, stackable frame layers, 0–100% layer opacity, and typography controls, with no external font CDN requirement.
 - Adjustable 20–999 mm free canvas, including a draggable bottom paper edge.
 - Rotate blocks left/right by 90°, drag to position, resize, re-order, hide or delete.
 - PDF: text reflow, original fit, tiling, page ranges and bounded multi-segment previews.

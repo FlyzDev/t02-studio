@@ -2,7 +2,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const { mmToPx, pxToMm, flowLayout, clampBox, rotateBox, PAPER_WIDTH, MAX_HEIGHT,
-  LABEL_SIZES, LABEL_FRAMES, FONT_STACKS } = require('../src/t02studio/static/studio-core.js');
+  LABEL_SIZES, LABEL_FRAMES, FRAME_NAMES, FONT_STACKS, normalizeOpacity } = require('../src/t02studio/static/studio-core.js');
 
 assert.equal(PAPER_WIDTH, 384);
 assert.equal(MAX_HEIGHT, 8000);
@@ -11,7 +11,16 @@ assert.equal(Math.round(pxToMm(203)), 25);
 assert.deepEqual(Object.values(LABEL_SIZES).map(size => [size.widthMm, size.heightMm]),
   [[50, 30], [50, 50], [50, 80]]);
 assert.ok(Object.values(LABEL_SIZES).every(size => mmToPx(size.heightMm) <= MAX_HEIGHT));
-assert.deepEqual(LABEL_FRAMES, ['none', 'rounded', 'double', 'dashed', 'corners']);
+assert.deepEqual(LABEL_FRAMES, ['none', 'rounded', 'double', 'dashed', 'corners',
+  'solid', 'dotted', 'scallop', 'ticket', 'deco', 'wavy']);
+assert.ok(LABEL_FRAMES.every(frame => FRAME_NAMES[frame]));
+assert.equal(normalizeOpacity(undefined), 1);
+assert.equal(normalizeOpacity(null), 1);
+assert.equal(normalizeOpacity(0), 0);
+assert.equal(normalizeOpacity(0.35), 0.35);
+assert.equal(normalizeOpacity(-5), 0);
+assert.equal(normalizeOpacity(9), 1);
+assert.equal(normalizeOpacity('NaN'), 1);
 assert.equal(Object.keys(FONT_STACKS).length, 6);
 
 const blocks = [
@@ -48,7 +57,9 @@ for (const match of source.matchAll(/\$\("([\w-]+)"\)/g)) {
 assert.ok(markup.includes('data-mode="free"'));
 for (const page of ['studio.html', 'studio_alt.html']) {
   const html = fs.readFileSync(path.join(__dirname, '../src/t02studio/templates', page), 'utf8');
-  for (const id of ['create-label', 'label-font', 'label-title', 'label-subtitle', 'prop-font-family', 'text-font-family']) {
+  for (const id of ['create-label', 'add-frame', 'label-font', 'label-title', 'label-subtitle',
+    'prop-font-family', 'text-font-family', 'prop-opacity', 'prop-opacity-value',
+    'prop-frame-style', 'frame-properties']) {
     assert.ok(html.includes(`id="${id}"`), `${page}: missing ${id}`);
   }
   for (const size of Object.keys(LABEL_SIZES)) assert.ok(html.includes(`data-label-size="${size}"`));
@@ -56,4 +67,6 @@ for (const page of ['studio.html', 'studio_alt.html']) {
 }
 assert.ok(source.includes('createUuidV4()'));
 assert.ok(source.includes('clipboardData'));
+assert.ok(source.includes('context.globalAlpha = normalizeOpacity(item.opacity)'));
+assert.ok(source.includes('item.type === "frame"'));
 console.log('studio core tests OK');

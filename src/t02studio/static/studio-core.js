@@ -11,7 +11,11 @@ const T02StudioCore = (() => {
     classic: Object.freeze({ name: "Classic", widthMm: 50, heightMm: 50 }),
     tall: Object.freeze({ name: "Tall", widthMm: 50, heightMm: 80 })
   });
-  const LABEL_FRAMES = Object.freeze(["none", "rounded", "double", "dashed", "corners"]);
+  const LABEL_FRAMES = Object.freeze(["none", "rounded", "double", "dashed", "corners",
+    "solid", "dotted", "scallop", "ticket", "deco", "wavy"]);
+  const FRAME_NAMES = Object.freeze({ none: "None", rounded: "Rounded", double: "Double",
+    dashed: "Stitched", corners: "Corners", solid: "Classic", dotted: "Dotted",
+    scallop: "Scalloped", ticket: "Ticket", deco: "Art Deco", wavy: "Wavy" });
   // These common desktop fonts work offline; no external font CDN is required.
   const FONT_STACKS = Object.freeze({
     modern: '"Segoe UI", Arial, sans-serif',
@@ -24,6 +28,12 @@ const T02StudioCore = (() => {
 
   function mmToPx(mm) { return Math.round(Number(mm) * DPI / 25.4); }
   function pxToMm(px) { return Number(px) * 25.4 / DPI; }
+  // JSON projects from older versions have no opacity. Preserve zero opacity explicitly.
+  function normalizeOpacity(value) {
+    if (value === undefined || value === null || value === "") return 1;
+    const number = Number(value);
+    return Number.isFinite(number) ? Math.max(0, Math.min(1, number)) : 1;
+  }
 
   function flowLayout(items, padding = 16, gap = 12) {
     const available = PAPER_WIDTH - 2 * padding;
@@ -62,8 +72,8 @@ const T02StudioCore = (() => {
     };
   }
 
-  return { PAPER_WIDTH, MAX_HEIGHT, DPI, LABEL_SIZES, LABEL_FRAMES, FONT_STACKS,
-    mmToPx, pxToMm, flowLayout, clampBox, rotateBox };
+  return { PAPER_WIDTH, MAX_HEIGHT, DPI, LABEL_SIZES, LABEL_FRAMES, FRAME_NAMES, FONT_STACKS,
+    mmToPx, pxToMm, normalizeOpacity, flowLayout, clampBox, rotateBox };
 })();
 
 if (typeof module !== "undefined" && module.exports) module.exports = T02StudioCore;
