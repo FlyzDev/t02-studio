@@ -4,6 +4,12 @@ An open-source, self-hosted, browser-based receipt designer for the **Phomemo T0
 
 T02 Studio combines text, images, PDF extracts and QR codes into one 384-dot-wide strip. Its free-layout editor supports dragging, resizing, 90° rotation, an adjustable paper edge, paste-to-add images, layers, project JSON and PNG export.
 
+## Preview
+
+![T02 Studio dark free-edit workspace with a thermal-strip design and layer panel](docs/screenshots/t02-studio-editor.png)
+
+*Free-edit mode, with live preview, draggable paper edge, and layers. The sample text and third-party artwork shown in this user-supplied screenshot are illustrative content, not bundled editor assets or part of the software license.*
+
 ## Interfaces
 
 | Route | Purpose |
