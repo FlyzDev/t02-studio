@@ -1,10 +1,10 @@
 <!doctype html>
-<html lang="tr" data-theme="dark">
+<html lang="en" data-theme="dark">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#12161c">
-  <title>T02 Studio / Editör</title>
+  <title>T02 Studio / Receipt editor</title>
   <link rel="stylesheet" href="/static/studio-alt.css">
   <link rel="stylesheet" href="/static/studio-alt-dark.css">
 </head>
@@ -12,70 +12,78 @@
   <div class="studio-shell">
     <aside class="tool-sidebar">
       <div class="studio-brand"><div class="brand-monogram">t<span>02</span></div><div class="brand-name"><strong>T02 Studio</strong><small>Thermal print workspace</small></div></div>
-      <div class="side-heading"><span>YENİ BİLEŞEN</span><span class="hint-key">04 seçenek</span></div>
-      <nav class="tool-tabs" aria-label="Eklenecek içerik">
-        <button class="tool-tab active" type="button" data-tool="text"><span class="tab-number">01</span>Metin</button>
-        <button class="tool-tab" type="button" data-tool="image"><span class="tab-number">02</span>Görsel</button>
+      <div class="side-heading"><span>ADD COMPONENT</span><span class="hint-key">04 tools</span></div>
+      <nav class="tool-tabs" aria-label="Content tools">
+        <button class="tool-tab active" type="button" data-tool="text"><span class="tab-number">01</span>Text</button>
+        <button class="tool-tab" type="button" data-tool="image"><span class="tab-number">02</span>Image</button>
         <button class="tool-tab" type="button" data-tool="pdf"><span class="tab-number">03</span>PDF</button>
         <button class="tool-tab" type="button" data-tool="qr"><span class="tab-number">04</span>QR</button>
       </nav>
 
       <section class="tool-panel" data-panel="text">
-        <div class="panel-intro"><h2>Metin</h2><p>Başlık, not veya açıklama ekleyin.</p></div>
-        <label for="text-input">İçerik</label><textarea id="text-input" rows="7" placeholder="Metin yazın…"></textarea>
-        <div class="control-row"><label for="font-size">Yazı boyutu</label><output id="font-size-output">26 px</output></div>
+        <div class="panel-intro"><h2>Text</h2><p>Add a heading, note, or description.</p></div>
+        <label for="text-input">Content</label><textarea id="text-input" rows="7" placeholder="Type something…"></textarea>
+        <div class="control-row"><label for="font-size">Font size</label><output id="font-size-output">26 px</output></div>
         <input id="font-size" type="range" min="12" max="72" value="26">
-        <div class="control-row gap-top"><label for="text-align">Hizalama</label><select id="text-align"><option value="left">Sola</option><option value="center">Ortaya</option><option value="right">Sağa</option></select></div>
-        <label class="check-row"><input id="text-bold" type="checkbox"> Kalın metin</label>
-        <button id="add-text" class="add-button" type="button">Metni ekle <span>+</span></button>
+        <div class="control-row gap-top"><label for="text-align">Alignment</label><select id="text-align"><option value="left">Left</option><option value="center">Center</option><option value="right">Right</option></select></div>
+        <label class="check-row"><input id="text-bold" type="checkbox"> Bold text</label>
+        <button id="add-text" class="add-button" type="button">Add text <span>+</span></button>
       </section>
 
       <section class="tool-panel hidden" data-panel="image">
-        <div class="panel-intro"><h2>Görsel</h2><p>Fotoğraf, çizim veya ekran görüntüsü.</p></div>
-        <label class="drop-target" for="image-file" id="image-drop"><span class="upload-symbol">↑</span><strong>Görsel seç veya sürükle</strong><small>PNG · JPEG · WEBP</small><small class="file-name" id="image-name">Henüz dosya seçilmedi</small></label>
+        <div class="panel-intro"><h2>Image</h2><p>Photos, illustrations, and screenshots.</p></div>
+        <label class="drop-target" for="image-file" id="image-drop"><span class="upload-symbol">↑</span><strong>Choose or drop an image</strong><small>PNG · JPEG · WEBP</small><small class="file-name" id="image-name">No file selected</small></label>
         <input id="image-file" type="file" accept="image/*" hidden>
-        <button id="add-image" class="add-button" type="button">Görseli ekle <span>+</span></button>
-        <p class="helper-line">Ekran görüntüsünü Ctrl+V ile doğrudan yapıştırabilirsin.</p>
+        <button id="add-image" class="add-button" type="button">Add image <span>+</span></button>
+        <p class="helper-line">Paste a screenshot directly with Ctrl+V.</p>
       </section>
 
       <section class="tool-panel hidden" data-panel="pdf">
-        <div class="panel-intro"><h2>PDF</h2><p>Belgenin tamamını veya bir bölümünü ekleyin.</p></div>
-        <label class="drop-target" for="pdf-file" id="pdf-drop"><span class="upload-symbol">↑</span><strong>PDF seç veya sürükle</strong><small>En fazla 30 MB</small><small class="file-name" id="pdf-name">Henüz dosya seçilmedi</small></label>
+        <div class="panel-intro"><h2>PDF</h2><p>Extract all or part of a document.</p></div>
+        <label class="drop-target" for="pdf-file" id="pdf-drop"><span class="upload-symbol">↑</span><strong>Choose or drop a PDF</strong><small>Up to 30 MB</small><small class="file-name" id="pdf-name">No file selected</small></label>
         <input id="pdf-file" type="file" accept="application/pdf,.pdf" hidden>
-        <label for="pdf-mode" class="gap-top">Dönüştürme</label><select id="pdf-mode"><option value="smart">Akıllı metin yerleşimi</option><option value="fit">Orijinal boyutu sığdır</option><option value="tile">Parçalı grafik baskısı</option></select>
-        <label for="pdf-pages" class="gap-top">Sayfa aralığı <span class="quiet">(isteğe bağlı)</span></label><input id="pdf-pages" type="text" placeholder="Örn. 1,3-5">
-        <label class="check-row"><input id="pdf-ocr" type="checkbox"> Taranmış PDF için yerel OCR</label>
-        <div class="pdf-segment-nav"><button id="pdf-prev" type="button" aria-label="Önceki PDF bölümü">←</button><span id="pdf-part-label">Parça 1 / ?</span><button id="pdf-next" type="button" aria-label="Sonraki PDF bölümü">→</button></div>
-        <button id="add-pdf" class="add-button" type="button">PDF bölümünü ekle <span>+</span></button>
+        <label for="pdf-mode" class="gap-top">Conversion</label><select id="pdf-mode"><option value="smart">Smart text reflow</option><option value="fit">Fit original page</option><option value="tile">Tile wide graphics</option></select>
+        <label for="pdf-pages" class="gap-top">Page range <span class="quiet">(optional)</span></label><input id="pdf-pages" type="text" placeholder="e.g. 1,3-5">
+        <label class="check-row"><input id="pdf-ocr" type="checkbox"> Try local OCR for scanned PDFs</label>
+        <div class="pdf-segment-nav"><button id="pdf-prev" type="button" aria-label="Previous PDF segment">←</button><span id="pdf-part-label">Segment 1 / ?</span><button id="pdf-next" type="button" aria-label="Next PDF segment">→</button></div>
+        <button id="add-pdf" class="add-button" type="button">Add PDF segment <span>+</span></button>
       </section>
 
       <section class="tool-panel hidden" data-panel="qr">
-        <div class="panel-intro"><h2>QR kodu</h2><p>Bağlantı veya kısa metin için.</p></div>
-        <label for="qr-value">Kod içeriği</label><textarea id="qr-value" rows="4" placeholder="https://..."></textarea>
-        <label for="qr-caption" class="gap-top">Alt yazı <span class="quiet">(isteğe bağlı)</span></label><input id="qr-caption" type="text" maxlength="90" placeholder="Açıklama">
-        <button id="add-qr" class="add-button" type="button">QR kodunu ekle <span>+</span></button>
+        <div class="panel-intro"><h2>QR code</h2><p>For a link or short text.</p></div>
+        <label for="qr-value">Code content</label><textarea id="qr-value" rows="4" placeholder="https://..."></textarea>
+        <label for="qr-caption" class="gap-top">Caption <span class="quiet">(optional)</span></label><input id="qr-caption" type="text" maxlength="90" placeholder="Description">
+        <button id="add-qr" class="add-button" type="button">Add QR code <span>+</span></button>
       </section>
 
-      <div class="sidebar-bottom"><div class="sidebar-note"><div class="note-title">Nasıl kullanılır?</div><p>Soldan ekle, ortada düzenle, sağdan katmanları yönet. Yalnızca yazdır dediğinde yazıcıya gönderilir.</p></div><div class="printer-state"><span id="status-led" class="status-led"></span><span id="printer-status">Yazıcı kontrol ediliyor</span><button type="button" id="refresh-status" title="Durumu yenile">↻</button></div></div>
+      <div class="sidebar-bottom">
+        <div class="sidebar-note"><div class="note-title">How it works</div><p>Add content on the left, edit in the middle, manage layers on the right. Nothing is sent to your printer until you click Print.</p></div>
+        <div class="printer-picker">
+          <div class="printer-picker-heading"><label for="printer-select">PRINTER CONNECTION</label><button id="discover-printers" type="button" title="Rescan paired ports">↻ Rescan</button></div>
+          <select id="printer-select" aria-label="Choose a discovered printer port"><option value="">Scanning paired ports…</option></select>
+          <p id="printer-help">Pair your printer in Windows Bluetooth settings first, then rescan.</p>
+        </div>
+        <div class="printer-state"><span id="status-led" class="status-led"></span><span id="printer-status">Checking connected ports…</span><button type="button" id="refresh-status" title="Refresh printer status">↻</button></div>
+      </div>
     </aside>
 
     <main class="main-area">
       <header class="top-bar">
-        <div class="title-stack"><div class="breadcrumb">ÇALIŞMA ALANI <span>/</span> TASARIM 01</div><h1>Yeni baskı</h1><p>53 mm termal şerit için düzenleme alanı.</p></div>
-        <div class="top-actions"><button type="button" id="theme-toggle" class="theme-toggle" aria-label="Açık temaya geç">☼ <span>Açık tema</span></button><a href="/" class="original-link">Önceki görünüm</a><div class="mode-switch" role="group" aria-label="Düzenleme modu"><button class="active" type="button" data-mode="flow">Şerit</button><button type="button" data-mode="free">Serbest düzen</button></div></div>
+        <div class="title-stack"><div class="breadcrumb">WORKSPACE <span>/</span> DESIGN 01</div><h1>New print</h1><p>Design on a 53 mm thermal strip.</p></div>
+        <div class="top-actions"><button type="button" id="theme-toggle" class="theme-toggle" aria-label="Switch to light theme">☼ <span>Light theme</span></button><a href="/composer" class="original-link">Legacy editor</a><div class="mode-switch" role="group" aria-label="Layout mode"><button class="active" type="button" data-mode="flow">Flow</button><button type="button" data-mode="free">Free edit</button></div></div>
       </header>
 
-      <div class="edit-toolbar"><div class="action-group"><button type="button" id="undo" title="Ctrl+Z">Geri al</button><button type="button" id="redo" title="Ctrl+Y">Yinele</button><span class="toolbar-divider"></span><button type="button" id="duplicate">Çoğalt</button><button type="button" id="rotate-left" title="90° sola döndür">↶ 90°</button><button type="button" id="rotate-right" title="90° sağa döndür">↷ 90°</button><button type="button" id="delete-selected">Sil</button></div><div class="action-group"><button type="button" id="save-project">Kaydet</button><button type="button" id="load-project">Aç</button><button type="button" id="clear-project">Temizle</button></div></div>
+      <div class="edit-toolbar"><div class="action-group"><button type="button" id="undo" title="Ctrl+Z">Undo</button><button type="button" id="redo" title="Ctrl+Y">Redo</button><span class="toolbar-divider"></span><button type="button" id="duplicate">Duplicate</button><button type="button" id="rotate-left" title="Rotate 90° counterclockwise">↶ 90°</button><button type="button" id="rotate-right" title="Rotate 90° clockwise">↷ 90°</button><button type="button" id="delete-selected">Delete</button></div><div class="action-group"><button type="button" id="save-project">Save</button><button type="button" id="load-project">Open</button><button type="button" id="clear-project">Clear</button></div></div>
 
-      <div class="free-toolbar hidden" id="free-toolbar"><div class="action-group"><button type="button" id="free-select" class="active">Seç / taşı</button><button type="button" id="free-text">Metin kutusu</button><button type="button" id="free-image">Görsel</button></div><div class="height-controls"><label for="page-height">Uzunluk</label><input id="page-height" type="number" min="20" max="999" value="150"><span>mm</span><input id="page-height-range" type="range" min="20" max="999" value="150"><button type="button" id="fit-height">İçeriğe uydur</button></div></div>
+      <div class="free-toolbar hidden" id="free-toolbar"><div class="action-group"><button type="button" id="free-select" class="active">Select / move</button><button type="button" id="free-text">Text box</button><button type="button" id="free-image">Image</button></div><div class="height-controls"><label for="page-height">Length</label><input id="page-height" type="number" min="20" max="999" value="150"><span>mm</span><input id="page-height-range" type="range" min="20" max="999" value="150"><button type="button" id="fit-height">Fit content</button></div></div>
 
       <div class="content-area">
-        <section id="canvas-stage" class="canvas-stage" aria-label="Baskı çalışma alanı"><div class="workbench-grid"></div><div class="stage-caption"><span>BASKI ÖNİZLEMESİ</span><span>Ölçek 1:1 · 384 px</span></div><div class="paper-surround"><div class="paper-heading"><span>T02 / THERMAL ROLL</span><span>53 MM</span></div><div class="paper" id="paper"><canvas id="composition-canvas" width="384" height="640" tabindex="0" aria-label="Baskı tasarımı"></canvas><textarea id="inline-text" class="inline-text hidden" aria-label="Metni düzenle"></textarea></div><div id="paper-resize" class="paper-resize-handle" role="slider" tabindex="0" aria-label="Kağıt uzunluğunu değiştir" aria-valuemin="20" aria-valuemax="999" aria-valuenow="80"><div class="paper-cut"></div><span class="paper-grip">↕ Uzunluğu buradan ayarla</span></div><p id="paper-hint" class="paper-hint">Başlamak için soldan bir bileşen ekle.</p></div></section>
+        <section id="canvas-stage" class="canvas-stage" aria-label="Print design workspace"><div class="workbench-grid"></div><div class="stage-caption"><span>PRINT PREVIEW</span><span>1:1 scale · 384 px</span></div><div class="paper-surround"><div class="paper-heading"><span>T02 / THERMAL ROLL</span><span>53 MM</span></div><div class="paper" id="paper"><canvas id="composition-canvas" width="384" height="640" tabindex="0" aria-label="Print design"></canvas><textarea id="inline-text" class="inline-text hidden" aria-label="Edit text"></textarea></div><div id="paper-resize" class="paper-resize-handle" role="slider" tabindex="0" aria-label="Adjust paper length" aria-valuemin="20" aria-valuemax="999" aria-valuenow="80"><div class="paper-cut"></div><span class="paper-grip">↕ Drag to resize paper</span></div><p id="paper-hint" class="paper-hint">Add a component from the left to begin.</p></div></section>
 
-        <aside class="layers-panel"><div class="layers-head"><div><span class="side-eyebrow">BELGE</span><h3>Katmanlar</h3></div><span id="block-count">0 öğe</span></div><div id="layers-list" class="layers-list"><p class="empty-layers">Henüz öğe eklenmedi.</p></div><div id="selection-properties" class="selection-properties hidden"><div class="properties-title"><h3>Özellikler</h3><span id="rotation-value">0°</span></div><div class="property-grid"><label>X <input id="prop-x" type="number" min="0"></label><label>Y <input id="prop-y" type="number" min="0"></label><label>Genişlik <input id="prop-w" type="number" min="1"></label><label>Yükseklik <input id="prop-h" type="number" min="1"></label></div><div class="text-properties hidden" id="text-properties"><div class="property-grid"><label>Yazı boyutu <input id="prop-font-size" type="number" min="8" max="100"></label><label>Hizalama <select id="prop-align"><option value="left">Sol</option><option value="center">Orta</option><option value="right">Sağ</option></select></label></div><label class="check-row"><input id="prop-bold" type="checkbox"> Kalın</label><button id="edit-text" type="button" class="secondary-button">Metni düzenle</button></div><div class="text-properties hidden" id="image-properties"><label class="image-fit-label">Yerleşim<select id="prop-image-fit"><option value="contain">Oranı koru</option><option value="cover">Kırparak doldur</option><option value="stretch">Esnet</option></select></label></div><div class="action-group property-actions"><button type="button" id="move-up">Öne</button><button type="button" id="move-down">Arkaya</button></div></div><div class="shortcuts"><span>İPUÇLARI</span><p><kbd>Ctrl</kbd> + <kbd>V</kbd> görsel yapıştır</p><p><kbd>Del</kbd> seçili öğeyi sil</p><p>Çift tık ile metni düzenle</p><p>Alt kenarı çekerek şeridi uzat</p></div></aside>
+        <aside class="layers-panel"><div class="layers-head"><div><span class="side-eyebrow">DOCUMENT</span><h3>Layers</h3></div><span id="block-count">0 items</span></div><div id="layers-list" class="layers-list"><p class="empty-layers">No layers yet.</p></div><div id="selection-properties" class="selection-properties hidden"><div class="properties-title"><h3>Properties</h3><span id="rotation-value">0°</span></div><div class="property-grid"><label>X <input id="prop-x" type="number" min="0"></label><label>Y <input id="prop-y" type="number" min="0"></label><label>Width <input id="prop-w" type="number" min="1"></label><label>Height <input id="prop-h" type="number" min="1"></label></div><div class="text-properties hidden" id="text-properties"><div class="property-grid"><label>Font size <input id="prop-font-size" type="number" min="8" max="100"></label><label>Alignment <select id="prop-align"><option value="left">Left</option><option value="center">Center</option><option value="right">Right</option></select></label></div><label class="check-row"><input id="prop-bold" type="checkbox"> Bold</label><button id="edit-text" type="button" class="secondary-button">Edit text</button></div><div class="text-properties hidden" id="image-properties"><label class="image-fit-label">Image fit<select id="prop-image-fit"><option value="contain">Keep proportions</option><option value="cover">Crop to fill</option><option value="stretch">Stretch</option></select></label></div><div class="action-group property-actions"><button type="button" id="move-up">Bring forward</button><button type="button" id="move-down">Send backward</button></div></div><div class="shortcuts"><span>SHORTCUTS</span><p><kbd>Ctrl</kbd> + <kbd>V</kbd> paste an image</p><p><kbd>Del</kbd> delete selection</p><p>Double-click to edit text</p><p>Drag the bottom edge to resize paper</p></div></aside>
       </div>
 
-      <footer class="print-footer"><div class="print-meta"><span>KAĞIT UZUNLUĞU</span><strong id="length-value">80 mm</strong><small id="length-note">384 nokta · 203 DPI</small></div><div class="footer-actions"><button type="button" id="download-preview">PNG indir</button><button type="button" id="print-button" class="print-button" disabled>Yazdır <span>↗</span></button></div></footer>
+      <footer class="print-footer"><div class="print-meta"><span>PAPER LENGTH</span><strong id="length-value">80 mm</strong><small id="length-note">384 dots · 203 DPI</small></div><div class="footer-actions"><button type="button" id="download-preview">Download PNG</button><button type="button" id="print-button" class="print-button" disabled>Print <span>↗</span></button></div></footer>
     </main>
   </div>
   <input id="project-file" type="file" accept="application/json,.json" hidden>

@@ -14,6 +14,6 @@ if ($LASTEXITCODE -ne 0) { throw 'Python package installation failed.' }
 $env:PYTHONPATH = Join-Path $projectRoot 'src'
 if (-not $env:T02_BIND_HOST) { $env:T02_BIND_HOST = '127.0.0.1' }
 if (-not $env:T02_PORT) { $env:T02_PORT = '8062' }
-if (-not $env:T02_COM_PORT) { throw 'Set T02_COM_PORT to your paired printer Bluetooth COM port (e.g. COM7).' }
+# A port can be picked from the web UI after launch; no environment variable needed.
 & $python -m t02studio.launcher
 if ($LASTEXITCODE -ne 0) { throw 'T02 Studio failed to start.' }

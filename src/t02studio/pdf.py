@@ -18,28 +18,28 @@ MAX_PDF_RENDER_PIXELS = 8_000_000
 
 def parse_pages(specification: str, total_pages: int) -> list[int]:
     if total_pages < 1:
-        raise ValueError("PDF sayfa içermiyor")
+        raise ValueError("PDF contains no pages")
     if not specification.strip():
         return list(range(total_pages))
     result = set()
     for piece in specification.split(","):
         piece = piece.strip()
         if not re.fullmatch(r"\d+(-\d+)?", piece):
-            raise ValueError("Geçersiz sayfa seçimi")
+            raise ValueError("Invalid page selection")
         numbers = [int(x) for x in piece.split("-")]
         first, last = (numbers[0], numbers[0]) if len(numbers) == 1 else numbers
         if first < 1 or last > total_pages or first > last:
-            raise ValueError("Seçilen sayfa PDF içinde bulunamadı")
+            raise ValueError("Selected page was not found in the PDF")
         result.update(range(first - 1, last))
     return sorted(result)
 
 
 def _validate_pixmap_size(page: fitz.Page, width: int) -> None:
     if page.rect.width <= 0 or page.rect.height <= 0:
-        raise ValueError("PDF sayfa boyutları geçersiz")
+        raise ValueError("Invalid PDF page dimensions")
     height = math.ceil(page.rect.height * width / page.rect.width)
     if height > MAX_HEIGHT or width * height > MAX_PDF_RENDER_PIXELS:
-        raise ValueError("PDF sayfası baskı için çok uzun veya büyük. Sayfaları bölmeyi deneyin")
+        raise ValueError("PDF page is too large or long for printing. Try splitting the pages")
 
 
 def _page_pixmap(page: fitz.Page, width: int) -> Image.Image:
@@ -84,15 +84,15 @@ def _smart_page_parts(page: fitz.Page, enable_ocr: bool) -> list[Image.Image]:
                 continue
     if not text_found:
         if not enable_ocr:
-            raise ValueError("Bu sayfa taranmış olabilir. Akıllı düzenleme için yerel OCR gerekli; Orijinal modunu deneyin")
+            raise ValueError("This page may be scanned. Smart reflow needs local OCR; try Fit original instead")
         try:
             import pytesseract
             scanned = _page_pixmap(page, 1400)
             text = pytesseract.image_to_string(scanned, lang="tur+eng").strip()
         except (ImportError, OSError, RuntimeError) as exc:
-            raise ValueError("OCR kurulu değil veya çalıştırılamıyor. Orijinal modunu seçin") from exc
+            raise ValueError("OCR is unavailable. Choose Fit original instead") from exc
         if not text:
-            raise ValueError("OCR bu sayfada okunabilir metin bulamadı. Orijinal modunu seçin")
+            raise ValueError("OCR found no readable text. Choose Fit original instead")
         return [render_text(text, font_size=22, padding=14)]
     return parts
 
@@ -113,7 +113,7 @@ def _tile_page_parts(page: fitz.Page, page_number: int) -> list[Image.Image]:
         left += PRINT_WIDTH - overlap
     parts = []
     for index, piece in enumerate(columns, start=1):
-        parts.append(render_text(f"SAYFA {page_number} / PARÇA {index}-{len(columns)}", font_size=18, padding=10))
+        parts.append(render_text(f"PAGE {page_number} / TILE {index}-{len(columns)}", font_size=18, padding=10))
         parts.append(piece)
     return parts
 
@@ -146,7 +146,7 @@ def _stack_segments(pages: list[list[Image.Image]]) -> list[Image.Image]:
             flush()
         for part_index, part in enumerate(parts):
             if part.width != PRINT_WIDTH or part.height < 1 or part.height > MAX_HEIGHT:
-                raise ValueError("PDF parçası çok uzun; içeriği daha küçük parçalara ayırın")
+                raise ValueError("PDF segment is too long; split the content into smaller parts")
             gap = 16 if page_index > 0 and part_index == 0 else 7
             if not placements:
                 gap = 0
@@ -158,16 +158,16 @@ def _stack_segments(pages: list[list[Image.Image]]) -> list[Image.Image]:
             used_height += part.height
     flush()
     if not result:
-        raise ValueError("PDF'de basılabilir içerik bulunamadı")
+        raise ValueError("No printable content found in the PDF")
     return result
 
 
 def _stack(images: list[Image.Image], gap: int = 8) -> Image.Image:
     if not images:
-        raise ValueError("PDF'de basılabilir içerik bulunamadı")
+        raise ValueError("No printable content found in the PDF")
     height = sum(img.height for img in images) + gap * (len(images) - 1)
     if height > MAX_HEIGHT:
-        raise ValueError("PDF çok uzun. Daha az sayfa seçin veya bölerek basın")
+        raise ValueError("PDF is too long. Select fewer pages or print in segments")
     receipt = Image.new("1", (PRINT_WIDTH, height), 1)
     position = 0
     for image in images:
@@ -181,19 +181,19 @@ def _stack(images: list[Image.Image], gap: int = 8) -> Image.Image:
 def render_pdf_segments(blob: bytes, mode: str = "smart", pages: str = "",
                         options: dict | None = None) -> list[Image.Image]:
     if mode not in {"smart", "fit", "tile"}:
-        raise ValueError("PDF baskı modu geçersiz")
+        raise ValueError("Invalid PDF print mode")
     if not blob or len(blob) > MAX_PDF_BYTES:
-        raise ValueError("PDF boş veya çok büyük")
+        raise ValueError("PDF is empty or too large")
     try:
         doc = fitz.open(stream=blob, filetype="pdf")
     except (fitz.FileDataError, ValueError, RuntimeError) as exc:
-        raise ValueError("Geçerli bir PDF yükleyin") from exc
+        raise ValueError("Upload a valid PDF") from exc
     try:
         if doc.needs_pass:
-            raise ValueError("Bu PDF şifreli. Lütfen önce kilidini açın")
+            raise ValueError("This PDF is encrypted. Unlock it first")
         selection = parse_pages(pages, len(doc))
         if len(selection) > MAX_PAGES:
-            raise ValueError("Tek baskıda en fazla 20 sayfa seçilebilir")
+            raise ValueError("Select at most 20 pages per print")
         options = options or {}
         page_parts: list[list[Image.Image]] = []
         for index in selection:
@@ -214,5 +214,5 @@ def render_pdf(blob: bytes, mode: str = "smart", pages: str = "",
     """Compatibility helper for scripts needing only a single, short receipt."""
     segments = render_pdf_segments(blob, mode=mode, pages=pages, options=options)
     if len(segments) > 1:
-        raise ValueError("PDF çok uzun. Parçalı önizleme ve baskı için web arayüzünü kullanın")
+        raise ValueError("PDF is too long. Use the web editor for segment previews and printing")
     return segments[0]

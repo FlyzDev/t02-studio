@@ -11,3 +11,8 @@
 @media(prefers-reduced-motion:reduce){*{animation-duration:0!important;transition-duration:0!important}}
 .pdf-segment-bar{flex:none;display:flex;justify-content:center;align-items:center;gap:22px;padding:11px 20px;background:#1b322f;border-top:1px solid #3c6b5d}.pdf-segment-info{display:flex;align-items:center;flex-direction:column;gap:3px;min-width:145px}.pdf-segment-info>span{font-size:9px;font-weight:800;letter-spacing:1.4px;color:#96d7b8}.pdf-segment-info strong{font-size:18px;color:#e8fff3;font-variant-numeric:tabular-nums}.pdf-segment-info small{font-size:10px;color:#9eb5ae}
 @media(max-width:700px){.pdf-segment-bar{gap:10px;padding:12px 10px}.pdf-segment-bar button{padding:10px 8px;font-size:11px}.pdf-segment-info{min-width:100px}}
+.printer-picker{display:grid;grid-template-columns:1fr auto;gap:8px;color:#c1d3d0;font-size:11px;margin-bottom:15px}
+.printer-picker label{font-size:10px;font-weight:700;letter-spacing:.6px}
+.printer-picker button{padding:2px 0;border:0;background:transparent;color:#a9e9c4;font-size:11px}
+.printer-picker select{grid-column:1/-1;width:100%;padding:10px;background:#101c23;color:#e5f2ee;border:1px solid #46655d;border-radius:8px}
+.printer-picker p{grid-column:1/-1;font-size:10px;margin:0;line-height:1.5;color:#91a7a1}

@@ -26,11 +26,11 @@ class RasterTests(unittest.TestCase):
         self.assertGreater(long.height, short.height * 2)
 
     def test_empty_text_is_rejected(self):
-        with self.assertRaisesRegex(ValueError, "boş"):
+        with self.assertRaisesRegex(ValueError, "empty"):
             render_text("  \n  ")
 
     def test_extremely_long_text_is_rejected_before_word_wrapping(self):
-        with self.assertRaisesRegex(ValueError, "uzun"):
+        with self.assertRaisesRegex(ValueError, "too long"):
             render_text("x" * 25000)
 
     def test_uploaded_wide_image_is_proportional_and_dithered(self):
@@ -53,18 +53,18 @@ class RasterTests(unittest.TestCase):
         self.assertEqual(0, output.convert("L").getpixel((180, 50)))
 
     def test_unreadable_image_is_rejected(self):
-        with self.assertRaisesRegex(ValueError, "görsel"):
+        with self.assertRaisesRegex(ValueError, "valid image"):
             render_upload(b"this is not a picture")
 
     def test_oversized_upload_is_rejected_before_decode(self):
-        with self.assertRaisesRegex(ValueError, "boyut"):
+        with self.assertRaisesRegex(ValueError, "10 MB"):
             render_upload(b"x" * (10 * 1024 * 1024 + 1))
 
     def test_oversized_pixel_count_is_rejected(self):
         source = Image.new("RGB", (3000, 3000), "white")
         data = io.BytesIO()
         source.save(data, "PNG")
-        with self.assertRaisesRegex(ValueError, "piksel"):
+        with self.assertRaisesRegex(ValueError, "pixels"):
             render_upload(data.getvalue())
 
     def test_qr_label_is_mono_and_width_384(self):

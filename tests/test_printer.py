@@ -72,7 +72,7 @@ class PrinterTests(unittest.TestCase):
             return len(data) - 1
 
         connection.write = short_write
-        with self.assertRaisesRegex(PrinterError, "tamamlanamadı"):
+        with self.assertRaisesRegex(PrinterError, "interrupted"):
             print_image(self.image, "COM6", serial_factory=lambda **kwargs: connection)
         self.assertEqual(1, len(calls))
 

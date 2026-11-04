@@ -12,9 +12,9 @@
     const button = document.getElementById("theme-toggle");
     if (button) {
       const isDark = theme === "dark";
-      button.setAttribute("aria-label", isDark ? "Açık temaya geç" : "Koyu temaya geç");
+      button.setAttribute("aria-label", isDark ? "Switch to light theme" : "Switch to dark theme");
       button.setAttribute("aria-pressed", String(isDark));
-      button.innerHTML = isDark ? "☼ <span>Açık tema</span>" : "☾ <span>Koyu tema</span>";
+      button.innerHTML = isDark ? "☼ <span>Light theme</span>" : "☾ <span>Dark theme</span>";
     }
   };
 

@@ -9,7 +9,8 @@ const work = {
   pageHeight: mmToPx(150), busy: false, drag: null, inlineId: null,
   paperDrag: null,
   history: [], future: [], imageFile: null, pdfFile: null, pdfSegment: 0,
-  pdfTotal: 1, toastTimer: null, draftTimer: null, pointer: { x: 24, y: 24 }
+  pdfTotal: 1, toastTimer: null, draftTimer: null, pointer: { x: 24, y: 24 },
+  printerPort: "", printers: []
 };
 const imageCache = new Map();
 const MAX_ITEMS = 100;
@@ -30,7 +31,7 @@ function toast(message, error = false) {
 
 function apiError(response) {
   if (response.ok) return response;
-  return response.json().catch(() => ({})).then(data => { throw Error(data.error || `Sunucu hatası (${response.status})`); });
+  return response.json().catch(() => ({})).then(data => { throw Error(data.error || `Server error (${response.status})`); });
 }
 
 function selected() { return work.items.find(item => item.id === work.selectedId) || null; }
@@ -54,14 +55,14 @@ function scheduleDraft() {
 }
 function restoreData(data) {
   if (!data || data.version !== 2 || !Array.isArray(data.items) || data.items.length > MAX_ITEMS)
-    throw Error("Geçerli bir T02 Studio proje dosyası seç");
+    throw Error("Choose a valid T02 Studio project file");
   const items = data.items.map(item => {
-    if (!["text", "image"].includes(item.type)) throw Error("Desteklenmeyen katman türü");
-    const safe = { ...item, id: String(item.id || uid()), name: String(item.name || "Öğe").slice(0, 120),
+    if (!["text", "image"].includes(item.type)) throw Error("Unsupported layer type");
+    const safe = { ...item, id: String(item.id || uid()), name: String(item.name || "Item").slice(0, 120),
       x: Number(item.x) || 0, y: Number(item.y) || 0, w: Number(item.w) || 100, h: Number(item.h) || 50,
       hidden: Boolean(item.hidden), rotation: [0, 90, 180, 270].includes(Number(item.rotation)) ? Number(item.rotation) : 0 };
     if (safe.type === "image" && !/^data:image\/(png|jpeg|webp);base64,/i.test(safe.src || ""))
-      throw Error("Projedeki görsel desteklenmiyor");
+      throw Error("Unsupported image in project");
     if (safe.type === "image") safe.fit = ["contain", "cover", "stretch"].includes(safe.fit) ? safe.fit : "contain";
     if (safe.type === "text") {
       safe.text = String(safe.text || "").slice(0, 20_000);
@@ -110,7 +111,7 @@ function imageFor(src) {
   if (imageCache.has(src)) return imageCache.get(src);
   const image = new Image();
   image.onload = () => render();
-  image.onerror = () => toast("Görsel yüklenemedi", true);
+  image.onerror = () => toast("Could not load image", true);
   image.src = src;
   imageCache.set(src, image);
   return image;
@@ -202,15 +203,15 @@ function render() {
   drawSelection(geometry);
   $("paper-hint").classList.toggle("hidden", work.items.length > 0);
   const mm = pxToMm(height);
-  $("length-value").textContent = `${mm.toLocaleString("tr-TR", { maximumFractionDigits: 1 })} mm`;
+  $("length-value").textContent = `${mm.toLocaleString("en-US", { maximumFractionDigits: 1 })} mm`;
   const oversized = geometry.height > MAX_HEIGHT;
   const clipped = work.mode === "free" && work.items.some(item => !item.hidden &&
     (item.x < 0 || item.y < 0 || item.x + item.w > PAPER_WIDTH || item.y + item.h > work.pageHeight));
-  $("length-note").textContent = oversized ? "Baskı çok uzun, birkaç öğeyi çıkar veya küçült" :
-    clipped ? "Dikkat: Bazı öğeler kâğıt dışında, çıktıda kırpılır" : `${work.items.length} öğe · 53 mm · 203 DPI`;
+  $("length-note").textContent = oversized ? "Print is too long. Remove or resize some items." :
+    clipped ? "Some items extend outside the paper and will be clipped." : `${work.items.length} items · 53 mm · 203 DPI`;
   $("length-note").style.color = oversized ? "#f1a6a6" : clipped ? "#eebc73" : "";
-  $("print-button").disabled = oversized || work.items.length === 0 || work.busy;
-  $("block-count").textContent = `${work.items.length} öğe`;
+  $("print-button").disabled = oversized || work.items.length === 0 || work.busy || !work.printerPort;
+  $("block-count").textContent = `${work.items.length} items`;
   $("page-height").value = Math.round(pxToMm(work.pageHeight));
   $("page-height-range").value = Math.round(pxToMm(work.pageHeight));
   $("paper-resize").setAttribute("aria-valuenow", String(Math.round(mm)));
@@ -229,21 +230,21 @@ function updateLayers() {
   list.replaceChildren();
   if (!work.items.length) {
     const empty = document.createElement("p"); empty.className = "empty-layers";
-    empty.textContent = "Henüz öğe eklenmedi."; list.appendChild(empty); return;
+    empty.textContent = "No layers yet."; list.appendChild(empty); return;
   }
   [...work.items].reverse().forEach(item => {
     const row = document.createElement("div");
     row.className = "layer-item" + (work.selectedId === item.id ? " active" : "");
-    row.title = "Katmanı seç";
+    row.title = "Select layer";
     const symbol = document.createElement("span"); symbol.className = "layer-symbol";
     symbol.textContent = item.type === "text" ? "T" : "▧";
     const names = document.createElement("div"); names.className = "layer-text";
     const name = document.createElement("strong"); name.textContent = item.name;
-    const meta = document.createElement("small"); meta.textContent = item.type === "text" ? "Metin" : "Görsel";
+    const meta = document.createElement("small"); meta.textContent = item.type === "text" ? "Text" : "Image";
     names.append(name, meta);
     const visibility = document.createElement("button"); visibility.type = "button";
     visibility.className = "layer-visibility"; visibility.textContent = item.hidden ? "◌" : "◉";
-    visibility.title = item.hidden ? "Katmanı göster" : "Katmanı gizle";
+    visibility.title = item.hidden ? "Show layer" : "Hide layer";
     visibility.addEventListener("click", event => {
       event.stopPropagation(); checkpoint(); item.hidden = !item.hidden; render(); scheduleDraft();
     });
@@ -277,7 +278,7 @@ function updateProperties(geometry) {
 }
 
 function addItem(item, position = null) {
-  if (work.items.length >= MAX_ITEMS) throw Error("Bir tasarımda en fazla 100 öğe olabilir");
+  if (work.items.length >= MAX_ITEMS) throw Error("A design can contain up to 100 items");
   checkpoint();
   const nextY = work.items.length ? Math.max(...work.items.map(block => block.y + block.h)) + 12 : 18;
   item.id = uid(); item.hidden = false;
@@ -292,7 +293,7 @@ function addItem(item, position = null) {
 }
 
 function addText(text, atPointer = false) {
-  if (!text.trim()) throw Error("Önce bir metin yaz");
+  if (!text.trim()) throw Error("Enter some text first");
   const item = { type: "text", name: text.trim().slice(0, 34), text, fontSize: Number($("font-size").value),
     align: $("text-align").value, bold: $("text-bold").checked,
     w: work.mode === "free" ? 290 : 352, h: 50 };
@@ -368,7 +369,7 @@ function deleteSelected() {
 function duplicateSelected() {
   const item = selected(); if (!item) return;
   const copy = cloneItem(item);
-  copy.name = `${item.name} kopya`; copy.x = Math.min(PAPER_WIDTH - copy.w, item.x + 18);
+  copy.name = `${item.name} copy`; copy.x = Math.min(PAPER_WIDTH - copy.w, item.x + 18);
   copy.y = Math.min(MAX_HEIGHT - copy.h, item.y + 18);
   addItem(copy, work.mode === "free" ? { x: copy.x, y: copy.y } : null);
 }
@@ -425,7 +426,7 @@ function finishInlineEdit(cancel = false) {
   const editor = $("inline-text"); editor.classList.add("hidden");
   const item = work.items.find(block => block.id === id);
   if (!cancel && item && item.text !== editor.value) {
-    checkpoint(); item.text = editor.value; item.name = editor.value.trim().slice(0, 34) || "Metin";
+    checkpoint(); item.text = editor.value; item.name = editor.value.trim().slice(0, 34) || "Text";
     fitTextToBox(item); scheduleDraft();
   }
   render();
@@ -437,7 +438,7 @@ function pointerDown(event) {
   const pos = pointerPosition(event);
   work.pointer = { x: Math.round(pos.x), y: Math.round(pos.y) };
   if (work.mode === "free" && work.freeTool === "text") {
-    const item = addText("Yeni metin", work.pointer);
+    const item = addText("New text", work.pointer);
     setFreeTool("select"); beginInlineEdit(item); return;
   }
   if (work.mode === "free" && work.freeTool === "image") {
@@ -511,8 +512,8 @@ function paperResizeUp(event) {
 }
 
 async function normalizedImage(file) {
-  if (!(file instanceof Blob)) throw Error("Önce bir görsel seç");
-  if (file.size > 10 * 1024 * 1024) throw Error("Görsel 10 MB'den büyük olamaz");
+  if (!(file instanceof Blob)) throw Error("Choose an image first");
+  if (file.size > 10 * 1024 * 1024) throw Error("Image must be smaller than 10 MB");
   const bitmap = await createImageBitmap(file);
   const ratio = Math.min(1, 1200 / bitmap.width, 5000 / bitmap.height);
   const buffer = document.createElement("canvas");
@@ -529,7 +530,7 @@ async function addImageFile(file, name, position = null) {
   const image = await normalizedImage(file);
   const width = work.mode === "free" ? 300 : 352;
   const height = Math.max(20, Math.round(width * image.height / image.width));
-  const item = { type: "image", name: name || "Görsel", src: image.src, w: width,
+  const item = { type: "image", name: name || "Image", src: image.src, w: width,
     h: Math.min(MAX_HEIGHT, height), fit: "contain" };
   addItem(item, position);
 }
@@ -542,13 +543,13 @@ async function fromServerPreview(body) {
   image.close?.();
   const data = await new Promise((resolve, reject) => {
     const reader = new FileReader(); reader.onload = () => resolve(reader.result);
-    reader.onerror = () => reject(Error("Görsel okunamadı")); reader.readAsDataURL(png);
+    reader.onerror = () => reject(Error("Could not read image")); reader.readAsDataURL(png);
   });
   return { src: data, ...size, headers: response.headers };
 }
 
 async function addPdf() {
-  if (!work.pdfFile) throw Error("Önce bir PDF seç");
+  if (!work.pdfFile) throw Error("Choose a PDF first");
   const body = new FormData(); body.append("kind", "pdf");
   body.append("file", work.pdfFile, work.pdfFile.name);
   body.append("pdf_mode", $("pdf-mode").value); body.append("pages", $("pdf-pages").value);
@@ -557,7 +558,7 @@ async function addPdf() {
   const data = await fromServerPreview(body);
   work.pdfTotal = Math.max(1, Number(data.headers.get("X-Total-Segments") || 1));
   const width = work.mode === "free" ? 350 : 352;
-  addItem({ type: "image", name: `PDF · Bölüm ${work.pdfSegment + 1}/${work.pdfTotal}`,
+  addItem({ type: "image", name: `PDF · Segment ${work.pdfSegment + 1}/${work.pdfTotal}`,
     src: data.src, w: width, h: Math.min(MAX_HEIGHT, Math.round(data.height * width / data.width)), fit: "contain" });
   if (work.pdfSegment + 1 < work.pdfTotal) work.pdfSegment++;
   updatePdfLabel();
@@ -565,7 +566,7 @@ async function addPdf() {
 
 async function addQr() {
   const value = $("qr-value").value.trim();
-  if (!value) throw Error("QR içeriğini yaz");
+  if (!value) throw Error("Enter QR code content");
   const body = new FormData(); body.append("kind", "qr"); body.append("qr_value", value);
   body.append("caption", $("qr-caption").value);
   const data = await fromServerPreview(body);
@@ -575,14 +576,14 @@ async function addQr() {
 }
 
 function updatePdfLabel() {
-  $("pdf-part-label").textContent = `Parça ${work.pdfSegment + 1} / ${work.pdfTotal || "?"}`;
+  $("pdf-part-label").textContent = `Segment ${work.pdfSegment + 1} / ${work.pdfTotal || "?"}`;
   $("pdf-prev").disabled = work.pdfSegment <= 0;
   $("pdf-next").disabled = work.pdfSegment >= work.pdfTotal - 1;
 }
 
 function rasterCanvas() {
   const geometry = layouts();
-  if (geometry.height > MAX_HEIGHT || geometry.height < 1) throw Error("Baskı uzunluğu sınırı aşıldı");
+  if (geometry.height > MAX_HEIGHT || geometry.height < 1) throw Error("Print length limit exceeded");
   const output = document.createElement("canvas"); output.width = PAPER_WIDTH; output.height = Math.ceil(geometry.height);
   drawArtwork(output.getContext("2d", { alpha: false }), geometry);
   return output;
@@ -590,21 +591,21 @@ function rasterCanvas() {
 async function waitForImages() {
   await Promise.all(work.items.filter(item => item.type === "image" && !item.hidden).map(item => new Promise((resolve, reject) => {
     const image = imageFor(item.src);
-    if (image.complete) { image.naturalWidth ? resolve() : reject(Error("Görsel yüklenemedi")); return; }
+    if (image.complete) { image.naturalWidth ? resolve() : reject(Error("Could not load image")); return; }
     image.addEventListener("load", resolve, { once: true });
-    image.addEventListener("error", () => reject(Error("Görsel yüklenemedi")), { once: true });
+    image.addEventListener("error", () => reject(Error("Could not load image")), { once: true });
   })));
 }
 function pngBlob() {
   return waitForImages().then(() => new Promise((resolve, reject) =>
-    rasterCanvas().toBlob(blob => blob ? resolve(blob) : reject(Error("PNG oluşturulamadı")), "image/png")));
+    rasterCanvas().toBlob(blob => blob ? resolve(blob) : reject(Error("Could not create PNG")), "image/png")));
 }
 async function downloadPng() {
-  if (!work.items.length) { toast("Önce bir şey ekle", true); return; }
+  if (!work.items.length) { toast("Add an item first", true); return; }
   try {
     const blob = await pngBlob();
     const url = URL.createObjectURL(blob); const anchor = document.createElement("a");
-    anchor.href = url; anchor.download = `t02-baski-${Date.now()}.png`;
+    anchor.href = url; anchor.download = `t02-print-${Date.now()}.png`;
     document.body.appendChild(anchor); anchor.click(); anchor.remove();
     setTimeout(() => URL.revokeObjectURL(url), 3000);
   } catch (error) { toast(error.message, true); }
@@ -613,20 +614,21 @@ async function downloadPng() {
 async function printNow() {
   if (!work.items.length || work.busy) return;
   const mm = Math.round(pxToMm(layouts().height));
-  if (mm >= 300 && !window.confirm(`Bu tasarım yaklaşık ${mm} mm kâğıt kullanacak. Basalım mı?`)) return;
+  if (mm >= 300 && !window.confirm(`This design will use about ${mm} mm of paper. Print it?`)) return;
   const printButton = $("print-button");
   const idleLabel = printButton.innerHTML;
-  work.busy = true; render(); $("print-button").textContent = "Gönderiliyor...";
+  work.busy = true; render(); $("print-button").textContent = "Sending...";
   try {
     const blob = await pngBlob();
     const body = new FormData(); body.append("kind", "image");
     body.append("file", blob, "t02-composite.png");
     body.append("image_mode", "fit"); body.append("dither", "true"); body.append("density", "50");
+    body.append("printer_port", work.printerPort);
     body.append("job_id", createUuidV4());
     const response = await apiError(await fetch("/api/print", { method: "POST", body }));
     const result = await response.json();
-    toast(`${result.length_mm} mm baskı ${result.port} portuna gönderildi. Kâğıdı kontrol et.`);
-  } catch (error) { toast(error.message + " Tekrar basmadan önce yazıcıyı kontrol et.", true); }
+    toast(`${result.length_mm} mm sent to ${result.port}. Check your paper before printing again.`);
+  } catch (error) { toast(error.message + " Check the printer before retrying.", true); }
   finally { work.busy = false; printButton.innerHTML = idleLabel; render(); }
 }
 function createUuidV4() {
@@ -638,13 +640,51 @@ function createUuidV4() {
   return `${hex.slice(0,8)}-${hex.slice(8,12)}-${hex.slice(12,16)}-${hex.slice(16,20)}-${hex.slice(20)}`;
 }
 
-async function status() {
+async function discoverPrinters() {
+  const select = $("printer-select");
+  const refresh = $("discover-printers");
+  refresh.disabled = true;
+  $("printer-status").textContent = "Scanning paired serial ports…";
   try {
-    const response = await apiError(await fetch("/api/status", { cache: "no-store" }));
+    const response = await apiError(await fetch("/api/printers", { cache: "no-store" }));
     const data = await response.json();
-    $("printer-status").textContent = data.port_visible ? `${data.port} Windows'ta kayıtlı` : `${data.port} görünmüyor`;
-    $("status-led").className = data.port_visible ? "good" : "bad";
-  } catch { $("printer-status").textContent = "Sunucu bağlantısı yok"; $("status-led").className = "bad"; }
+    work.printers = Array.isArray(data.ports) ? data.ports : [];
+    const discovered = new Set(work.printers.map(printer => printer.port));
+    let savedPort = "";
+    try { savedPort = localStorage.getItem("t02-printer-port") || ""; } catch { /* Optional. */ }
+    let port = [work.printerPort, savedPort, data.configured_port].find(value => discovered.has(value)) || "";
+    if (!port) {
+      const identified = work.printers.filter(printer => printer.likely_printer);
+      const bluetooth = work.printers.filter(printer => printer.transport === "Bluetooth");
+      if (identified.length === 1) port = identified[0].port;
+      else if (bluetooth.length === 1) port = bluetooth[0].port;
+    }
+    select.replaceChildren();
+    const placeholder = document.createElement("option");
+    placeholder.value = "";
+    placeholder.textContent = work.printers.length ? "Select a printer port" : "No paired serial ports found";
+    select.appendChild(placeholder);
+    for (const item of work.printers) {
+      const option = document.createElement("option");
+      option.value = item.port;
+      option.textContent = `${item.likely_printer ? "★ " : ""}${item.port} · ${item.description} (${item.transport})`;
+      select.appendChild(option);
+    }
+    select.disabled = work.printers.length === 0;
+    select.value = port;
+    work.printerPort = port;
+    $("printer-help").textContent = work.printers.length ?
+      "Only paired OS serial ports appear here. Choose the printer's outgoing Bluetooth COM port." :
+      "Pair the printer in Windows Bluetooth settings, then rescan. Nearby unpaired devices are not scanned.";
+    $("printer-status").textContent = port ? `${port} selected · not physically verified` : "Choose a port to enable printing";
+    $("status-led").className = port ? "good" : "bad";
+  } catch {
+    work.printerPort = ""; work.printers = [];
+    select.replaceChildren(new Option("Discovery unavailable", ""));
+    select.disabled = true;
+    $("printer-status").textContent = "Cannot reach printer discovery";
+    $("status-led").className = "bad";
+  } finally { refresh.disabled = false; render(); }
 }
 
 function attachFileInput(inputId, dropId, onFile) {
@@ -745,11 +785,20 @@ function bind() {
   });
   $("download-preview").addEventListener("click", downloadPng);
   $("print-button").addEventListener("click", printNow);
-  $("refresh-status").addEventListener("click", status);
+  $("refresh-status").addEventListener("click", discoverPrinters);
+  $("discover-printers").addEventListener("click", discoverPrinters);
+  $("printer-select").addEventListener("change", event => {
+    work.printerPort = event.target.value;
+    try { localStorage.setItem("t02-printer-port", work.printerPort); } catch { /* Optional. */ }
+    $("printer-status").textContent = work.printerPort ?
+      `${work.printerPort} selected · not physically verified` : "Choose a port to enable printing";
+    $("status-led").className = work.printerPort ? "good" : "bad";
+    render();
+  });
   $("save-project").addEventListener("click", () => {
     const blob = new Blob([JSON.stringify(projectData())], { type: "application/json" });
     const url = URL.createObjectURL(blob), link = document.createElement("a");
-    link.href = url; link.download = "t02-studio-proje.json";
+    link.href = url; link.download = "t02-studio-project.json";
     document.body.appendChild(link); link.click(); link.remove();
     setTimeout(() => URL.revokeObjectURL(url), 3000);
   });
@@ -757,13 +806,13 @@ function bind() {
   $("project-file").addEventListener("change", async event => {
     const file = event.target.files[0]; if (!file) return;
     try {
-      if (file.size > 12 * 1024 * 1024) throw Error("Proje dosyası çok büyük");
-      restoreData(JSON.parse(await file.text())); toast("Proje açıldı");
+      if (file.size > 12 * 1024 * 1024) throw Error("Project file is too large");
+      restoreData(JSON.parse(await file.text())); toast("Project opened");
     } catch (error) { toast(error.message, true); }
     event.target.value = "";
   });
   $("clear-project").addEventListener("click", () => {
-    if (!work.items.length || !window.confirm("Tüm baskı tasarımını temizleyelim mi?")) return;
+    if (!work.items.length || !window.confirm("Clear the entire print design?")) return;
     checkpoint(); work.items = []; work.selectedId = null; render(); scheduleDraft();
   });
   $("canvas-stage").addEventListener("dragover", event => event.preventDefault());
@@ -780,7 +829,7 @@ function bind() {
     if (event.target === $("inline-text")) return;
     const image = [...(event.clipboardData?.items || [])].find(item => item.type.startsWith("image/"));
     if (image) {
-      event.preventDefault(); addImageFile(image.getAsFile(), "Yapıştırılan görsel").catch(error => toast(error.message, true));
+      event.preventDefault(); addImageFile(image.getAsFile(), "Pasted image").catch(error => toast(error.message, true));
       return;
     }
     if (work.mode === "free" && document.activeElement === canvas && event.clipboardData?.getData("text/plain")) {
@@ -815,7 +864,7 @@ function init() {
     if (saved) restoreData(JSON.parse(saved));
     else { syncMode(); render(); }
   } catch { syncMode(); render(); }
-  selectTool("text"); updatePdfLabel(); status();
+  selectTool("text"); updatePdfLabel(); discoverPrinters();
 }
 
 init();

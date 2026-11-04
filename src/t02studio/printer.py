@@ -36,36 +36,36 @@ class PrintResult:
 def print_image(image: Image.Image, port_name: str = "COM6",
                 serial_factory: Callable | None = None) -> PrintResult:
     if not re.fullmatch(r"COM\d{1,3}", port_name, flags=re.IGNORECASE):
-        raise ValueError("Geçersiz COM portu")
+        raise ValueError("Invalid COM port")
     if not _PRINT_LOCK.acquire(blocking=False):
-        raise PrinterBusy("Yazıcı başka bir baskıyla meşgul")
+        raise PrinterBusy("The printer is busy with another job")
     try:
         payload = encode_raster(image)
         if serial_factory is None:
             try:
                 import serial
             except ImportError as exc:
-                raise PrinterUnavailable("pyserial yüklü değil") from exc
+                raise PrinterUnavailable("pyserial is not installed") from exc
             serial_factory = serial.Serial
         try:
             connection = serial_factory(port=port_name, baudrate=9600,
                                         timeout=2, write_timeout=15)
         except (OSError, RuntimeError, ValueError) as exc:
             raise PrinterUnavailable(
-                f"{port_name} açılamadı. T02 açık ve Bluetooth bağlı mı? ({exc})") from exc
+                f"Could not open {port_name}. Is the T02 powered on and paired over Bluetooth? ({exc})") from exc
         try:
             with connection as serial_port:
                 for offset in range(0, len(payload), SERIAL_CHUNK_BYTES):
                     chunk = payload[offset:offset + SERIAL_CHUNK_BYTES]
                     written = serial_port.write(chunk)
                     if written != len(chunk):
-                        raise PrinterError("Baskı gönderimi tamamlanamadı; yeniden denemeden önce yazıcıyı kontrol edin")
+                        raise PrinterError("Print transfer was interrupted; check the printer before retrying")
                 serial_port.flush()
         except PrinterError:
             raise
         except (OSError, RuntimeError, ValueError) as exc:
             raise PrinterError(
-                f"Baskı gönderimi tamamlanamadı; tekrar göndermeden önce kâğıdı kontrol edin ({exc})") from exc
+                f"Print transfer was interrupted; check the paper before retrying ({exc})") from exc
         return PrintResult(port_name=port_name, bytes_written=len(payload))
     finally:
         _PRINT_LOCK.release()

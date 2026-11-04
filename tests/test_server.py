@@ -25,6 +25,10 @@ class ServerTests(unittest.TestCase):
             "COM_PORT": "COM6",
             "ALLOWED_NETWORKS": ["127.0.0.0/8", "192.168.50.0/24"],
             "PRINT_FUNCTION": fake_print,
+            "PORT_LIST_FUNCTION": lambda: [{"port": "COM6", "description": "Standard Serial over Bluetooth link",
+                                            "transport": "Bluetooth", "likely_printer": False},
+                                           {"port": "COM8", "description": "Phomemo T02 Mini",
+                                            "transport": "Bluetooth", "likely_printer": True}],
         })
         self.client = self.app.test_client()
 
@@ -33,6 +37,32 @@ class ServerTests(unittest.TestCase):
         self.assertEqual(200, response.status_code)
         self.assertEqual("COM6", response.json["port"])
         self.assertEqual(404, self.client.post("/api/login", json={"password": "anything"}).status_code)
+
+    def test_detected_ports_are_listed_without_touching_hardware(self):
+        response = self.client.get("/api/printers")
+        self.assertEqual(200, response.status_code)
+        self.assertEqual(2, len(response.json["ports"]))
+        self.assertEqual("COM6", response.json["configured_port"])
+        self.assertTrue(response.json["ports"][1]["likely_printer"])
+        self.assertEqual([], self.jobs)
+
+    def test_browser_selected_printer_is_used_for_print(self):
+        response = self.client.post("/api/print", data={
+            "kind": "text", "text": "Hello", "printer_port": "com8",
+            "job_id": "5b98177e-6251-4d9e-996c-f8c43dcbfa20"})
+        self.assertEqual(200, response.status_code)
+        self.assertEqual("COM8", response.json["port"])
+        self.assertEqual("COM8", self.jobs[0][1])
+        self.assertEqual("COM6", self.app.config["COM_PORT"])
+
+    def test_unknown_or_removed_port_is_rejected_without_printing(self):
+        for name in ("COM9", "../../COM8", "COM0", "COM9999"):
+            with self.subTest(name=name):
+                response = self.client.post("/api/print", data={
+                    "kind": "text", "text": "No", "printer_port": name,
+                    "job_id": "5b98177e-6251-4d9e-996c-f8c43dcbfa20"})
+                self.assertIn(response.status_code, (400, 503))
+        self.assertEqual([], self.jobs)
 
     def test_default_network_scope_is_loopback_only(self):
         with patch.dict("os.environ", {"T02_ALLOWED_NETWORKS": ""}):
@@ -48,6 +78,10 @@ class ServerTests(unittest.TestCase):
         self.assertIn(b"pdf-mode", page.data)
         self.assertIn(b"data-mode=\"free\"", page.data)
         self.assertNotIn(b"login-overlay", page.data)
+        self.assertIn(b'lang="en"', page.data)
+        self.assertIn(b'id="printer-select"', page.data)
+        old_composer = self.client.get("/composer")
+        self.assertEqual(200, old_composer.status_code)
         script = self.client.get("/static/studio.js")
         self.assertEqual(200, script.status_code)
         self.assertIn(b"/api/preview", script.data)

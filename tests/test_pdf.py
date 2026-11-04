@@ -45,7 +45,7 @@ class PdfTests(unittest.TestCase):
     def test_page_ranges_are_one_based_sorted_and_deduplicated(self):
         self.assertEqual([0, 2, 3], parse_pages("1, 3-4, 3", 5))
         self.assertEqual([0, 1, 2], parse_pages("", 3))
-        with self.assertRaisesRegex(ValueError, "sayfa"):
+        with self.assertRaisesRegex(ValueError, "page"):
             parse_pages("2-99", 3)
 
     def test_fit_mode_preserves_a4_as_whole_width(self):
@@ -79,7 +79,7 @@ class PdfTests(unittest.TestCase):
             render_pdf(b"not pdf", mode="smart", pages="1", options={})
         source = fitz.open(stream=make_pdf(), filetype="pdf")
         encrypted = source.tobytes(encryption=fitz.PDF_ENCRYPT_AES_256, owner_pw="owner", user_pw="secret")
-        with self.assertRaisesRegex(ValueError, "şifreli"):
+        with self.assertRaisesRegex(ValueError, "encrypted"):
             render_pdf(encrypted, mode="smart", pages="1", options={})
 
     def test_scanned_pdf_does_not_pretend_text_was_extracted(self):
@@ -92,13 +92,13 @@ class PdfTests(unittest.TestCase):
             document.new_page()
         with self.assertRaisesRegex(ValueError, "20"):
             render_pdf(document.tobytes(), mode="fit", pages="", options={})
-        with self.assertRaisesRegex(ValueError, "modu"):
+        with self.assertRaisesRegex(ValueError, "mode"):
             render_pdf(make_pdf(), mode="weird", pages="1", options={})
 
     def test_extreme_pdf_page_is_refused_before_raster_allocation(self):
         document = fitz.open()
         page = document.new_page(width=200, height=10_000)
-        with self.assertRaisesRegex(ValueError, "uzun"):
+        with self.assertRaisesRegex(ValueError, "long"):
             _validate_pixmap_size(page, 384)
 
     def test_long_documents_split_into_multiple_full_width_receipts(self):

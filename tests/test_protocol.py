@@ -31,7 +31,7 @@ class ProtocolTests(unittest.TestCase):
     def test_wrong_width_and_excessive_length_fail_before_encoding(self):
         with self.assertRaisesRegex(ValueError, "384"):
             encode_raster(Image.new("1", (100, 20), 1))
-        with self.assertRaisesRegex(ValueError, "uzun"):
+        with self.assertRaisesRegex(ValueError, "too long"):
             encode_raster(Image.new("1", (384, 8001), 1))
 
 

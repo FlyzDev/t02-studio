@@ -12,9 +12,9 @@ BLOCK_ROWS = 255
 
 def encode_raster(image: Image.Image) -> bytes:
     if image.width != PRINT_WIDTH:
-        raise ValueError("T02 baskı genişliği 384 piksel olmalı")
+        raise ValueError("T02 print width must be 384 pixels")
     if not 1 <= image.height <= MAX_HEIGHT:
-        raise ValueError("Baskı fazla uzun veya boş")
+        raise ValueError("Print is empty or too long")
     packed_white_bits = image.convert("1").tobytes()
     packet = bytearray(b"\x1b\x40\x1b\x61\x01")
     for first_row in range(0, image.height, BLOCK_ROWS):

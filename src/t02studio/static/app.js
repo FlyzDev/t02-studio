@@ -14,6 +14,7 @@ let pendingPreview = null;
 let printInFlight = false;
 let currentPreviewSequence = 0;
 let toastTimer = null;
+let printerPort = "";
 
 function createJobId() {
   if (window.crypto && typeof window.crypto.randomUUID === "function") return window.crypto.randomUUID();
@@ -40,8 +41,8 @@ function toast(message, error = false) {
 
 function setBusy(busy) {
   printInFlight = busy;
-  $("print-button").disabled = busy || !previewReady;
-  $("print-button").innerHTML = busy ? "⌛ Gönderiliyor..." : "<span>▧</span> T02'ye Yazdır";
+  $("print-button").disabled = busy || !previewReady || !printerPort;
+  $("print-button").innerHTML = busy ? "⌛ Sending..." : "<span>▧</span> Print to T02";
   updateSegmentControls();
 }
 
@@ -99,7 +100,7 @@ function buildFormData() {
     data.append("align", $("align").value);
     data.append("bold", $("bold").checked);
   } else if (kind === "image") {
-    if (!imageFile) throw new Error("Önce bir görsel seç.");
+    if (!imageFile) throw new Error("Choose an image first.");
     data.append("file", imageFile, imageFile.name);
     data.append("image_mode", $("image-mode").value);
     data.append("target_height", Math.round(Number($("target-height-mm").value) / 25.4 * 203));
@@ -110,7 +111,7 @@ function buildFormData() {
     data.append("sharpness", Number($("sharpness").value) / 100);
     data.append("dither", $("dither").checked);
   } else if (kind === "pdf") {
-    if (!pdfFile) throw new Error("Önce bir PDF seç.");
+    if (!pdfFile) throw new Error("Choose a PDF first.");
     data.append("file", pdfFile, pdfFile.name);
     data.append("pdf_mode", document.querySelector('input[name="pdf-mode"]:checked').value);
     data.append("pages", $("pages").value);
@@ -127,7 +128,7 @@ async function apiResponse(response) {
   if (response.ok) return response;
   let details = {};
   try { details = await response.json(); } catch { /* Server can return plain HTML errors. */ }
-  throw new Error(details.error || `Sunucu hatası (${response.status})`);
+  throw new Error(details.error || `Server error (${response.status})`);
 }
 
 function schedulePreview() {
@@ -147,13 +148,13 @@ async function refreshPreview() {
     $("preview-placeholder").querySelector("strong").textContent = error.message;
     $("preview-image").classList.add("hidden");
     $("length-value").textContent = "— mm";
-    $("length-note").textContent = "Dosya seçildiğinde hesaplanacak";
+    $("length-note").textContent = "Length appears after choosing a file";
     return;
   }
   const controller = new AbortController();
   pendingPreview = controller;
   $("preview-placeholder").classList.remove("hidden");
-  $("preview-placeholder").querySelector("strong").textContent = "Dönüştürülüyor...";
+  $("preview-placeholder").querySelector("strong").textContent = "Converting…";
   $("preview-image").classList.add("hidden");
   try {
     const response = await apiResponse(await fetch("/api/preview", { method: "POST", body, signal: controller.signal }));
@@ -171,11 +172,11 @@ async function refreshPreview() {
       pdfSegment = Number(response.headers.get("X-Segment-Index") || 0);
     }
     updateSegmentControls();
-    $("length-value").textContent = `${lengthMM.toLocaleString("tr-TR", {maximumFractionDigits:1})} mm`;
+    $("length-value").textContent = `${lengthMM.toLocaleString("en-US", {maximumFractionDigits:1})} mm`;
     const seconds = lengthMM / 8;
-    $("length-note").textContent = `Tahmini baskı: ~${Math.max(1, Math.round(seconds))} sn · 53 mm termal rulo`;
+    $("length-note").textContent = `Estimated print: ~${Math.max(1, Math.round(seconds))} s · 53 mm thermal roll`;
     previewReady = true;
-    $("print-button").disabled = printInFlight;
+    $("print-button").disabled = printInFlight || !printerPort;
     $("download-preview").disabled = false;
   } catch (error) {
     if (error.name === "AbortError") return;
@@ -183,7 +184,7 @@ async function refreshPreview() {
     $("preview-placeholder").classList.remove("hidden");
     $("preview-placeholder").querySelector("strong").textContent = error.message;
     $("length-value").textContent = "— mm";
-    $("length-note").textContent = "Baskı öncesi hatayı düzelt";
+    $("length-note").textContent = "Resolve this error before printing";
     toast(error.message, true);
   } finally {
     if (pendingPreview === controller) pendingPreview = null;
@@ -192,39 +193,67 @@ async function refreshPreview() {
 
 async function printNow() {
   if (!previewReady || printInFlight) return;
-  if (lengthMM >= 300 && !window.confirm(`Bu baskı yaklaşık ${Math.round(lengthMM)} mm kâğıt kullanacak. Devam edelim mi?`)) return;
+  if (lengthMM >= 300 && !window.confirm(`This print will use about ${Math.round(lengthMM)} mm of paper. Continue?`)) return;
   let body;
   try { body = buildFormData(); } catch (error) { toast(error.message, true); return; }
   const printingPdfSegment = kind === "pdf" ? pdfSegment : null;
   body.append("job_id", createJobId());
+  body.append("printer_port", printerPort);
   setBusy(true);
   try {
     const response = await apiResponse(await fetch("/api/print", { method: "POST", body }));
     const result = await response.json();
-    toast(`${result.port} portuna ${result.length_mm} mm baskı gönderildi${printingPdfSegment === null ? "" : ` (parça ${printingPdfSegment + 1}/${pdfTotalSegments})`}. Çıktıyı kontrol et.`);
+    toast(`${result.length_mm} mm sent to ${result.port}${printingPdfSegment === null ? "" : ` (segment ${printingPdfSegment + 1}/${pdfTotalSegments})`}. Check the paper.`);
     if (printingPdfSegment !== null && kind === "pdf" && pdfSegment === printingPdfSegment && pdfSegment + 1 < pdfTotalSegments) {
       ++pdfSegment;
       schedulePreview();
     }
     await updateStatus();
   } catch (error) {
-    toast(error.message + " Tekrar basmadan önce yazıcıdan kâğıt çıkıp çıkmadığını kontrol et.", true);
+    toast(error.message + " Check the printer before retrying.", true);
   } finally { setBusy(false); }
 }
 
 async function updateStatus() {
+  const selector = $("printer-select");
+  const rescan = $("discover-printers");
+  rescan.disabled = true;
   try {
-    const response = await apiResponse(await fetch("/api/status", {cache:"no-store"}));
-    const status = await response.json();
-    $("printer-status").textContent = status.port_visible ? `${status.port} Windows'ta kayıtlı` : `${status.port} görünmüyor`;
-    $("status-led").classList.toggle("ok", status.port_visible);
-    $("status-led").classList.toggle("bad", !status.port_visible);
+    const response = await apiResponse(await fetch("/api/printers", {cache:"no-store"}));
+    const data = await response.json();
+    const ports = Array.isArray(data.ports) ? data.ports : [];
+    const available = new Set(ports.map(item => item.port));
+    let saved = "";
+    try { saved = localStorage.getItem("t02-printer-port") || ""; } catch { /* Optional. */ }
+    printerPort = [printerPort, saved, data.configured_port].find(value => available.has(value)) || "";
+    if (!printerPort) {
+      const identified = ports.filter(item => item.likely_printer);
+      const bluetooth = ports.filter(item => item.transport === "Bluetooth");
+      if (identified.length === 1) printerPort = identified[0].port;
+      else if (bluetooth.length === 1) printerPort = bluetooth[0].port;
+    }
+    selector.replaceChildren();
+    selector.add(new Option(ports.length ? "Select a printer port" : "No paired serial ports found", ""));
+    for (const item of ports) selector.add(new Option(
+      `${item.likely_printer ? "★ " : ""}${item.port} · ${item.description} (${item.transport})`, item.port));
+    selector.disabled = !ports.length;
+    selector.value = printerPort;
+    $("printer-help").textContent = ports.length ? "Choose your printer's outgoing Bluetooth COM port." :
+      "Pair it in Windows Bluetooth settings, then rescan. Discovery does not pair devices.";
+    $("printer-status").textContent = printerPort ? `${printerPort} selected · not physically verified` : "Choose a printer port";
+    $("status-led").classList.toggle("ok", !!printerPort);
+    $("status-led").classList.toggle("bad", !printerPort);
+    $("print-button").disabled = !previewReady || printInFlight || !printerPort;
     return true;
   } catch (error) {
-    $("printer-status").textContent = "Bağlantı yok";
+    printerPort = "";
+    selector.replaceChildren(new Option("Discovery unavailable", ""));
+    selector.disabled = true;
+    $("print-button").disabled = true;
+    $("printer-status").textContent = "Printer discovery unavailable";
     $("status-led").classList.add("bad");
     return false;
-  }
+  } finally { rescan.disabled = false; }
 }
 
 function attachUpload(id, dropId, nameId, onFile) {
@@ -276,10 +305,19 @@ function init() {
   $("refresh-preview").addEventListener("click", refreshPreview);
   $("print-button").addEventListener("click", printNow);
   $("refresh-status").addEventListener("click", updateStatus);
+  $("discover-printers").addEventListener("click", updateStatus);
+  $("printer-select").addEventListener("change", event => {
+    printerPort = event.target.value;
+    try { localStorage.setItem("t02-printer-port", printerPort); } catch { /* Optional. */ }
+    $("printer-status").textContent = printerPort ? `${printerPort} selected · not physically verified` : "Choose a printer port";
+    $("status-led").classList.toggle("ok", !!printerPort);
+    $("status-led").classList.toggle("bad", !printerPort);
+    $("print-button").disabled = printInFlight || !previewReady || !printerPort;
+  });
   $("download-preview").addEventListener("click", () => {
     if (!previewReady || !previewUrl) return;
     const link = document.createElement("a");
-    link.href = previewUrl; link.download = `t02-${kind}${kind === "pdf" ? `-parca-${pdfSegment + 1}` : ""}-${Date.now()}.png`;
+    link.href = previewUrl; link.download = `t02-${kind}${kind === "pdf" ? `-segment-${pdfSegment + 1}` : ""}-${Date.now()}.png`;
     document.body.appendChild(link); link.click(); link.remove();
   });
   updateLabels();

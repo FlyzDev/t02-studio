@@ -15,7 +15,7 @@ MAX_SOURCE_PIXELS = 8_000_000
 
 def load_font(size: int, bold: bool = False) -> ImageFont.FreeTypeFont | ImageFont.ImageFont:
     if not 8 <= size <= 100:
-        raise ValueError("Yazı boyutu 8 ile 100 arasında olmalı")
+        raise ValueError("Font size must be between 8 and 100")
     candidates = (
         [r"C:\Windows\Fonts\arialbd.ttf", "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"]
         if bold else
@@ -33,7 +33,7 @@ def load_font(size: int, bold: bool = False) -> ImageFont.FreeTypeFont | ImageFo
 def wrap_text(text: str, font: ImageFont.ImageFont, max_width: int) -> list[str]:
     """Wrap at word boundaries, falling back to characters for long tokens."""
     if max_width < 16:
-        raise ValueError("Yazı alanı çok dar")
+        raise ValueError("Text area is too narrow")
     lines: list[str] = []
     for paragraph in text.replace("\r\n", "\n").split("\n"):
         if not paragraph.strip():
@@ -61,19 +61,19 @@ def wrap_text(text: str, font: ImageFont.ImageFont, max_width: int) -> list[str]
 def render_text(text: str, font_size: int = 24, padding: int = 16,
                 bold: bool = False, align: str = "left") -> Image.Image:
     if not text or not text.strip():
-        raise ValueError("Metin boş olamaz")
+        raise ValueError("Text cannot be empty")
     if len(text) > 20_000:
-        raise ValueError("Metin çok uzun, lütfen bölerek yazdırın")
+        raise ValueError("Text is too long; print it in smaller parts")
     if not 0 <= padding <= 80:
-        raise ValueError("Kenar boşluğu geçersiz")
+        raise ValueError("Invalid margin")
     if align not in {"left", "center", "right"}:
-        raise ValueError("Hizalama geçersiz")
+        raise ValueError("Invalid text alignment")
     font = load_font(font_size, bold)
     lines = wrap_text(text.strip(), font, PRINT_WIDTH - 2 * padding)
     line_height = max(font_size + 8, int(font.getbbox("Ay")[3] * 1.35))
     height = max(42, 2 * padding + len(lines) * line_height)
     if height > MAX_HEIGHT:
-        raise ValueError("Metin baskı için fazla uzun")
+        raise ValueError("Text is too long to print")
     canvas = Image.new("RGB", (PRINT_WIDTH, height), "white")
     draw = ImageDraw.Draw(canvas)
     for index, line in enumerate(lines):
@@ -87,20 +87,20 @@ def render_upload(blob: bytes, density: int = 50, dither: bool = True,
                   rotate: int = 0, brightness: float = 1.0, contrast: float = 1.0,
                   sharpness: float = 1.0, mode: str = "fit", target_height: int | None = None) -> Image.Image:
     if len(blob) > MAX_UPLOAD_BYTES:
-        raise ValueError("Dosya boyutu 10 MB sınırını aşıyor")
+        raise ValueError("File exceeds the 10 MB limit")
     if not 0 <= density <= 100:
-        raise ValueError("Baskı yoğunluğu geçersiz")
+        raise ValueError("Invalid print density")
     if rotate not in {0, 90, 180, 270}:
-        raise ValueError("Döndürme açısı geçersiz")
+        raise ValueError("Invalid rotation angle")
     if mode not in {"fit", "cover"}:
-        raise ValueError("Ölçekleme türü geçersiz")
+        raise ValueError("Invalid image scaling mode")
     for value in (brightness, contrast, sharpness):
         if not 0.25 <= value <= 3.0:
-            raise ValueError("Fotoğraf ayarı geçersiz")
+            raise ValueError("Invalid photo adjustment")
     try:
         source = Image.open(io.BytesIO(blob))
         if source.width * source.height > MAX_SOURCE_PIXELS:
-            raise ValueError("Görsel çok fazla piksel içeriyor")
+            raise ValueError("Image has too many pixels")
         oriented = ImageOps.exif_transpose(source)
         if "A" in oriented.getbands() or "transparency" in oriented.info:
             rgba = oriented.convert("RGBA")
@@ -109,17 +109,17 @@ def render_upload(blob: bytes, density: int = 50, dither: bool = True,
         else:
             image = oriented.convert("RGB")
     except (UnidentifiedImageError, OSError, SyntaxError) as exc:
-        raise ValueError("Geçerli bir görsel yükleyin") from exc
+        raise ValueError("Upload a valid image") from exc
     if rotate:
         image = image.rotate(-rotate, expand=True)
     if mode == "cover" and target_height:
         if not 1 <= target_height <= MAX_HEIGHT:
-            raise ValueError("Hedef uzunluk geçersiz")
+            raise ValueError("Invalid target length")
         image = ImageOps.fit(image, (PRINT_WIDTH, target_height), method=Image.Resampling.LANCZOS)
     else:
         height = max(1, round(image.height * PRINT_WIDTH / image.width))
         if height > MAX_HEIGHT:
-            raise ValueError("Görsel baskı için fazla uzun")
+            raise ValueError("Image is too long to print")
         image = image.resize((PRINT_WIDTH, height), Image.Resampling.LANCZOS)
     image = ImageEnhance.Brightness(image).enhance(brightness)
     image = ImageEnhance.Contrast(image).enhance(contrast)
@@ -135,9 +135,9 @@ def render_upload(blob: bytes, density: int = 50, dither: bool = True,
 
 def render_qr(value: str, caption: str = "") -> Image.Image:
     if not value or not value.strip():
-        raise ValueError("QR içeriği boş olamaz")
+        raise ValueError("QR code content cannot be empty")
     if len(value) > 1500:
-        raise ValueError("QR içeriği fazla uzun")
+        raise ValueError("QR code content is too long")
     import qrcode
     qr = qrcode.QRCode(version=None, error_correction=qrcode.constants.ERROR_CORRECT_M,
                        box_size=4, border=2)

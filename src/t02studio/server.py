@@ -5,6 +5,7 @@ from __future__ import annotations
 import io
 import ipaddress
 import os
+import re
 import threading
 import time
 import uuid
@@ -12,6 +13,7 @@ import uuid
 from flask import Flask, jsonify, render_template, request, send_file
 from werkzeug.exceptions import RequestEntityTooLarge
 
+from .discovery import available_ports
 from .pdf import render_pdf_segments
 from .printer import PrinterBusy, PrinterError, PrinterUnavailable, print_image
 from .raster import render_qr, render_text, render_upload
@@ -22,16 +24,16 @@ def _number(key: str, default: float, cast=float):
     try:
         return cast(value)
     except (TypeError, ValueError, OverflowError) as exc:
-        raise ValueError(f"{key} için geçersiz değer") from exc
+        raise ValueError(f"Invalid value for {key}") from exc
 
 
 def _file_blob() -> bytes:
     uploaded = request.files.get("file")
     if not uploaded:
-        raise ValueError("Önce bir dosya seçin")
+        raise ValueError("Choose a file first")
     blob = uploaded.read(31 * 1024 * 1024)
     if not blob:
-        raise ValueError("Dosya boş")
+        raise ValueError("The file is empty")
     return blob
 
 
@@ -66,11 +68,11 @@ def _render_request():
         )
         index = _number("segment", 0, int)
         if not 0 <= index < len(segments):
-            raise ValueError(f"PDF parçası 1 ile {len(segments)} arasında olmalı")
+            raise ValueError(f"PDF segment must be between 1 and {len(segments)}")
         return segments[index], index, len(segments)
     if kind == "qr":
         return render_qr(request.form.get("qr_value", ""), request.form.get("caption", "")), 0, 1
-    raise ValueError("Bilinmeyen içerik türü")
+    raise ValueError("Unknown content type")
 
 
 def create_app(config: dict | None = None) -> Flask:
@@ -80,7 +82,8 @@ def create_app(config: dict | None = None) -> Flask:
     for net in allowlist:
         ipaddress.ip_network(net, strict=False)
     app.config.update(
-        COM_PORT=os.environ.get("T02_COM_PORT", "COM6"),
+        COM_PORT=os.environ.get("T02_COM_PORT", "").upper(),
+        PORT_LIST_FUNCTION=available_ports,
         ALLOWED_NETWORKS=allowlist,
         MAX_CONTENT_LENGTH=35 * 1024 * 1024,
         PRINT_FUNCTION=print_image,
@@ -99,20 +102,24 @@ def create_app(config: dict | None = None) -> Flask:
         except ValueError:
             trusted = False
         if not trusted:
-            return jsonify(error="Bu arayüze yalnızca ev ağından erişilebilir"), 403
+            return jsonify(error="This interface is available only to trusted local-network clients"), 403
         if request.method not in {"GET", "HEAD", "OPTIONS"}:
             origin = request.headers.get("Origin")
             if origin and origin.rstrip("/") != request.host_url.rstrip("/"):
-                return jsonify(error="Başka bir siteden baskı isteği kabul edilmez"), 403
+                return jsonify(error="Print requests from another website are not accepted"), 403
             if request.headers.get("Sec-Fetch-Site") in {"cross-site", "same-site"}:
-                return jsonify(error="Tarayıcı kaynağı güvenilir değil"), 403
+                return jsonify(error="Untrusted browser origin"), 403
 
     @app.errorhandler(RequestEntityTooLarge)
     def too_large(error):
-        return jsonify(error="Dosya boyutu sınırı aşıldı"), 413
+        return jsonify(error="File size limit exceeded"), 413
 
     @app.get("/")
     def index():
+        return render_template("studio_alt.html")
+
+    @app.get("/composer")
+    def legacy_composer():
         return render_template("studio.html")
 
     @app.get("/classic")
@@ -126,13 +133,16 @@ def create_app(config: dict | None = None) -> Flask:
     @app.get("/api/status")
     def status():
         port_name = app.config["COM_PORT"]
-        try:
-            from serial.tools import list_ports
-            visible = any(port.device.upper() == port_name.upper() for port in list_ports.comports())
-        except ImportError:
-            visible = False
+        visible = any(item["port"] == port_name for item in app.config["PORT_LIST_FUNCTION"]())
         return jsonify(port=port_name, port_visible=visible,
-                       message="Port listede olsa bile yazıcı kapalı olabilir")
+                       message="A listed port does not guarantee the printer is powered on")
+
+    @app.get("/api/printers")
+    def printers():
+        return jsonify(ports=app.config["PORT_LIST_FUNCTION"](),
+                       configured_port=app.config["COM_PORT"],
+                       hint="Pair the printer in Windows Bluetooth settings first, then rescan. "
+                            "Only existing serial ports are listed; discovery never sends data.")
 
     @app.post("/api/preview")
     def preview():
@@ -157,6 +167,13 @@ def create_app(config: dict | None = None) -> Flask:
         try:
             image, segment_index, total_segments = _render_request()
             job_id = str(uuid.UUID(request.form.get("job_id", "")))
+            port_name = (request.form.get("printer_port") or app.config["COM_PORT"]).strip().upper()
+            if not re.fullmatch(r"COM[1-9]\d{0,2}", port_name):
+                raise PrinterUnavailable("Select a detected printer port before printing")
+            if not any(item["port"] == port_name for item in app.config["PORT_LIST_FUNCTION"]()):
+                raise PrinterUnavailable(f"{port_name} is no longer available. Rescan and select a port.")
+        except PrinterUnavailable as exc:
+            return jsonify(error=str(exc)), 503
         except (ValueError, AttributeError) as exc:
             return jsonify(error=str(exc)), 400
         with job_lock:
@@ -165,10 +182,10 @@ def create_app(config: dict | None = None) -> Flask:
                 if now - stamped > 1800:
                     del attempted_jobs[previous]
             if job_id in attempted_jobs:
-                return jsonify(error="Bu baskı talebi zaten gönderildi; yeni baskı için tekrar tıklayın"), 409
+                return jsonify(error="This print job was already submitted; click again for a new job"), 409
             attempted_jobs[job_id] = now
         try:
-            result = app.config["PRINT_FUNCTION"](image, app.config["COM_PORT"])
+            result = app.config["PRINT_FUNCTION"](image, port_name)
         except PrinterBusy as exc:
             return jsonify(error=str(exc)), 409
         except PrinterUnavailable as exc:
