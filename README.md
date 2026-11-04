@@ -2,6 +2,8 @@
 
 An open-source, self-hosted, browser-based receipt designer for the **Phomemo T02 Mini** thermal printer.
 
+**Windows users:** [Download the latest `T02-Studio.exe` from Releases](https://github.com/FlyzDev/t02-studio/releases/latest). No Python, terminal or manual build required. Double-click the EXE to open the editor, leave its console window open while printing, and close the window when finished. The Windows build is unsigned, so verify the published SHA256 checksum if SmartScreen warns. **Never run as Administrator.**
+
 T02 Studio combines text, images, PDF extracts and QR codes into one 384-dot-wide strip. Its free-layout editor supports dragging, resizing, 90° rotation, an adjustable paper edge, paste-to-add images, layers, project JSON and PNG export.
 
 ## Preview
@@ -48,6 +50,8 @@ Open **Label designer** from the left sidebar to start with a ready-to-edit labe
 These are layout presets for **53 mm continuous-roll paper** with approximately 50 mm of artwork width. They are not calibration profiles for precut die-cut stickers or separate label media. Font appearance may vary if another computer does not have the same desktop fonts; exporting a PNG rasterizes the chosen appearance.
 
 ## Quick start (Windows)
+
+If you are not developing the app, use the standalone EXE linked above. The steps below are for running from source.
 
 Prerequisites: Python 3.11+, a Phomemo T02 Mini or compatible serial printer, and Bluetooth enabled on your Windows PC. Pair the printer in **Windows Bluetooth settings** first. The USB cable on some models may only charge the device.
 
