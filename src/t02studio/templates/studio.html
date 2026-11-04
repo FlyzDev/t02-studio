@@ -6,6 +6,7 @@
   <meta name="theme-color" content="#121923">
   <title>T02 Studio · Legacy editor</title>
   <link rel="stylesheet" href="/static/studio.css">
+  <link rel="stylesheet" href="/static/label-editor.css">
 </head>
 <body>
   <div class="studio-shell">
@@ -17,6 +18,7 @@
         <button class="tool-tab" data-tool="image" type="button"><span>▧</span>Image</button>
         <button class="tool-tab" data-tool="pdf" type="button"><span>▤</span>PDF</button>
         <button class="tool-tab" data-tool="qr" type="button"><span>▦</span>QR</button>
+        <button class="tool-tab label-entry" data-tool="label" type="button"><span>▣</span>Labels</button>
       </nav>
 
       <div class="tool-panel" data-panel="text">
@@ -26,6 +28,7 @@
         <div class="control-row"><label for="font-size">Font size</label><output id="font-size-output">26 px</output></div>
         <input id="font-size" type="range" min="12" max="72" value="26">
         <div class="control-row gap-top"><label for="text-align">Alignment</label><select id="text-align"><option value="left">Left</option><option value="center">Center</option><option value="right">Right</option></select></div>
+        <label for="text-font-family" class="gap-top">Typeface</label><select id="text-font-family"><option value="modern">Modern · Segoe UI</option><option value="classic">Classic · Georgia</option><option value="rounded">Friendly · Trebuchet</option><option value="editorial">Editorial · Palatino</option><option value="typewriter">Typewriter · Courier</option><option value="display">Bold display · Impact</option></select>
         <label class="check-row"><input id="text-bold" type="checkbox"> Bold</label>
         <button class="add-button" id="add-text" type="button">+ Add text</button>
       </div>
@@ -53,6 +56,29 @@
         <label for="qr-value">QR content</label><textarea id="qr-value" rows="4" placeholder="https://...">https://example.com</textarea>
         <label for="qr-caption" class="gap-top">Caption</label><input id="qr-caption" type="text" maxlength="90" placeholder="e.g. Gift label">
         <button class="add-button" id="add-qr" type="button">+ Add QR</button>
+      </div>
+
+      <div class="tool-panel hidden" data-panel="label">
+        <h2>Label designer</h2><p class="panel-description">Choose a size and decorative frame, then edit your label freely.</p>
+        <div class="label-field-heading"><strong>SIZE PRESET</strong><span>50 mm design width</span></div>
+        <div class="label-size-grid" role="group" aria-label="Label size">
+          <button type="button" class="label-size-card" data-label-size="compact"><span class="label-size-symbol compact"></span><strong>Compact</strong><small>50 × 30 mm</small></button>
+          <button type="button" class="label-size-card active" data-label-size="classic"><span class="label-size-symbol classic"></span><strong>Classic</strong><small>50 × 50 mm</small></button>
+          <button type="button" class="label-size-card" data-label-size="tall"><span class="label-size-symbol tall"></span><strong>Tall</strong><small>50 × 80 mm</small></button>
+        </div>
+        <div class="label-field-heading spaced"><strong>FRAME</strong><span>Monochrome</span></div>
+        <div class="label-frame-grid" role="group" aria-label="Label frame style">
+          <button type="button" class="label-frame-card active" data-label-frame="rounded"><span class="frame-sample frame-rounded"></span><small>Rounded</small></button>
+          <button type="button" class="label-frame-card" data-label-frame="double"><span class="frame-sample frame-double"></span><small>Double</small></button>
+          <button type="button" class="label-frame-card" data-label-frame="dashed"><span class="frame-sample frame-dashed"></span><small>Stitched</small></button>
+          <button type="button" class="label-frame-card" data-label-frame="corners"><span class="frame-sample frame-corners"></span><small>Corners</small></button>
+          <button type="button" class="label-frame-card" data-label-frame="none"><span class="frame-sample frame-none"></span><small>None</small></button>
+        </div>
+        <label for="label-font" class="gap-top">Typeface</label><select id="label-font"><option value="modern">Modern · Segoe UI</option><option value="classic">Classic · Georgia</option><option value="rounded">Friendly · Trebuchet</option><option value="editorial">Editorial · Palatino</option><option value="typewriter">Typewriter · Courier</option><option value="display">Bold display · Impact</option></select>
+        <label for="label-title" class="gap-top">Headline</label><input id="label-title" type="text" maxlength="90" value="MADE WITH LOVE" placeholder="Your label title">
+        <label for="label-subtitle" class="gap-top">Secondary line</label><input id="label-subtitle" type="text" maxlength="140" value="A little something special" placeholder="Optional detail">
+        <button id="create-label" class="add-button" type="button">+ Create label</button>
+        <p id="label-note" class="label-note">Preset sizes use a 50 mm design area on 53 mm continuous paper. They are not precut-sticker calibration.</p>
       </div>
 
       <div class="sidebar-tip"><strong>Tip</strong><p>Add content on the left and arrange it on the paper. Use Free edit to move and resize items.</p></div>
@@ -95,6 +121,7 @@
             <div class="property-grid"><label>X <input id="prop-x" type="number" min="0"></label><label>Y <input id="prop-y" type="number" min="0"></label><label>Width <input id="prop-w" type="number" min="1"></label><label>Height <input id="prop-h" type="number" min="1"></label></div>
             <div class="text-properties hidden" id="text-properties">
               <div class="property-grid"><label>Font size <input id="prop-font-size" type="number" min="8" max="100"></label><label>Alignment <select id="prop-align"><option value="left">Left</option><option value="center">Center</option><option value="right">Right</option></select></label></div>
+              <label for="prop-font-family" class="typeface-property-label">Typeface</label><select id="prop-font-family" class="typeface-property-select"><option value="modern">Modern · Segoe UI</option><option value="classic">Classic · Georgia</option><option value="rounded">Friendly · Trebuchet</option><option value="editorial">Editorial · Palatino</option><option value="typewriter">Typewriter · Courier</option><option value="display">Bold display · Impact</option></select>
               <label class="check-row"><input id="prop-bold" type="checkbox"> Bold</label>
               <button id="edit-text" class="secondary-button" type="button">✎ Edit text</button>
             </div>

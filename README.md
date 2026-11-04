@@ -20,6 +20,18 @@ T02 Studio combines text, images, PDF extracts and QR codes into one 384-dot-wid
 
 All three interfaces use the same local backend. The alternate design is native HTML/CSS/JavaScript inspired by neutral design-system primitives; it does **not** bundle React or shadcn components.
 
+## Label designer
+
+Open **Label designer** from the left sidebar to start with a ready-to-edit label:
+
+- Three presets: **50 × 30**, **50 × 50**, and **50 × 80 mm**.
+- Five monochrome frame styles: no frame, rounded, double, stitched, or corner accents.
+- Six offline system-font families, including editorial serif, rounded, bold display, and typewriter. Each text layer can change its typeface independently.
+- Editable headline and secondary line; labels open directly in Free edit for repositioning and resizing. Changing a preset or frame can update an existing label.
+- Frames, dimensions, and font choices persist in project JSON and are rendered identically to the PNG/print path.
+
+These are layout presets for **53 mm continuous-roll paper** with approximately 50 mm of artwork width. They are not calibration profiles for precut die-cut stickers or separate label media. Font appearance may vary if another computer does not have the same desktop fonts; exporting a PNG rasterizes the chosen appearance.
+
 ## Quick start (Windows)
 
 Prerequisites: Python 3.11+, a Phomemo T02 Mini or compatible serial printer, and Bluetooth enabled on your Windows PC. Pair the printer in **Windows Bluetooth settings** first. The USB cable on some models may only charge the device.
@@ -59,6 +71,7 @@ If needed, create a **narrow Windows Firewall inbound rule** for only that PC's 
 - Compose a long strip from multiple blocks (text, image, PDF segment, QR).
 - Discover paired Windows serial ports, identify likely T02 entries, and remember the selected outgoing COM port per browser. Supports multiple LAN clients selecting ports independently.
 - Flow and free-layout modes; clipboard image paste and drag/drop.
+- Label designer presets, decorative frames, and typography controls, with no external font CDN requirement.
 - Adjustable 20–999 mm free canvas, including a draggable bottom paper edge.
 - Rotate blocks left/right by 90°, drag to position, resize, re-order, hide or delete.
 - PDF: text reflow, original fit, tiling, page ranges and bounded multi-segment previews.

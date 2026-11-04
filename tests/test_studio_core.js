@@ -1,12 +1,18 @@
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
-const { mmToPx, pxToMm, flowLayout, clampBox, rotateBox, PAPER_WIDTH, MAX_HEIGHT } = require('../src/t02studio/static/studio-core.js');
+const { mmToPx, pxToMm, flowLayout, clampBox, rotateBox, PAPER_WIDTH, MAX_HEIGHT,
+  LABEL_SIZES, LABEL_FRAMES, FONT_STACKS } = require('../src/t02studio/static/studio-core.js');
 
 assert.equal(PAPER_WIDTH, 384);
 assert.equal(MAX_HEIGHT, 8000);
 assert.equal(mmToPx(25.4), 203);
 assert.equal(Math.round(pxToMm(203)), 25);
+assert.deepEqual(Object.values(LABEL_SIZES).map(size => [size.widthMm, size.heightMm]),
+  [[50, 30], [50, 50], [50, 80]]);
+assert.ok(Object.values(LABEL_SIZES).every(size => mmToPx(size.heightMm) <= MAX_HEIGHT));
+assert.deepEqual(LABEL_FRAMES, ['none', 'rounded', 'double', 'dashed', 'corners']);
+assert.equal(Object.keys(FONT_STACKS).length, 6);
 
 const blocks = [
   { id: 'a', w: 352, h: 80 },
@@ -40,6 +46,14 @@ for (const match of source.matchAll(/\$\("([\w-]+)"\)/g)) {
   assert.ok(markup.includes(`id="${match[1]}"`), `Missing element in composer: ${match[1]}`);
 }
 assert.ok(markup.includes('data-mode="free"'));
+for (const page of ['studio.html', 'studio_alt.html']) {
+  const html = fs.readFileSync(path.join(__dirname, '../src/t02studio/templates', page), 'utf8');
+  for (const id of ['create-label', 'label-font', 'label-title', 'label-subtitle', 'prop-font-family', 'text-font-family']) {
+    assert.ok(html.includes(`id="${id}"`), `${page}: missing ${id}`);
+  }
+  for (const size of Object.keys(LABEL_SIZES)) assert.ok(html.includes(`data-label-size="${size}"`));
+  for (const frame of LABEL_FRAMES) assert.ok(html.includes(`data-label-frame="${frame}"`));
+}
 assert.ok(source.includes('createUuidV4()'));
 assert.ok(source.includes('clipboardData'));
 console.log('studio core tests OK');

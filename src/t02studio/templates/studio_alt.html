@@ -7,17 +7,19 @@
   <title>T02 Studio / Receipt editor</title>
   <link rel="stylesheet" href="/static/studio-alt.css">
   <link rel="stylesheet" href="/static/studio-alt-dark.css">
+  <link rel="stylesheet" href="/static/label-editor.css">
 </head>
 <body>
   <div class="studio-shell">
     <aside class="tool-sidebar">
       <div class="studio-brand"><div class="brand-monogram">t<span>02</span></div><div class="brand-name"><strong>T02 Studio</strong><small>Thermal print workspace</small></div></div>
-      <div class="side-heading"><span>ADD COMPONENT</span><span class="hint-key">04 tools</span></div>
+      <div class="side-heading"><span>ADD COMPONENT</span><span class="hint-key">05 tools</span></div>
       <nav class="tool-tabs" aria-label="Content tools">
         <button class="tool-tab active" type="button" data-tool="text"><span class="tab-number">01</span>Text</button>
         <button class="tool-tab" type="button" data-tool="image"><span class="tab-number">02</span>Image</button>
         <button class="tool-tab" type="button" data-tool="pdf"><span class="tab-number">03</span>PDF</button>
         <button class="tool-tab" type="button" data-tool="qr"><span class="tab-number">04</span>QR</button>
+        <button class="tool-tab label-entry" type="button" data-tool="label"><span class="tab-number">05</span>Label designer <span class="entry-hint">New</span></button>
       </nav>
 
       <section class="tool-panel" data-panel="text">
@@ -26,6 +28,7 @@
         <div class="control-row"><label for="font-size">Font size</label><output id="font-size-output">26 px</output></div>
         <input id="font-size" type="range" min="12" max="72" value="26">
         <div class="control-row gap-top"><label for="text-align">Alignment</label><select id="text-align"><option value="left">Left</option><option value="center">Center</option><option value="right">Right</option></select></div>
+        <label for="text-font-family" class="gap-top">Typeface</label><select id="text-font-family"><option value="modern">Modern · Segoe UI</option><option value="classic">Classic · Georgia</option><option value="rounded">Friendly · Trebuchet</option><option value="editorial">Editorial · Palatino</option><option value="typewriter">Typewriter · Courier</option><option value="display">Bold display · Impact</option></select>
         <label class="check-row"><input id="text-bold" type="checkbox"> Bold text</label>
         <button id="add-text" class="add-button" type="button">Add text <span>+</span></button>
       </section>
@@ -56,6 +59,30 @@
         <button id="add-qr" class="add-button" type="button">Add QR code <span>+</span></button>
       </section>
 
+      <section class="tool-panel hidden" data-panel="label">
+        <div class="panel-intro"><h2>Label designer</h2><p>Create a small, beautifully framed label. Then arrange every element freely.</p></div>
+        <div class="label-field-heading"><strong>SIZE PRESET</strong><span>50 mm design width</span></div>
+        <div class="label-size-grid" role="group" aria-label="Label size">
+          <button type="button" class="label-size-card" data-label-size="compact"><span class="label-size-symbol compact"></span><strong>Compact</strong><small>50 × 30 mm</small></button>
+          <button type="button" class="label-size-card active" data-label-size="classic"><span class="label-size-symbol classic"></span><strong>Classic</strong><small>50 × 50 mm</small></button>
+          <button type="button" class="label-size-card" data-label-size="tall"><span class="label-size-symbol tall"></span><strong>Tall</strong><small>50 × 80 mm</small></button>
+        </div>
+        <div class="label-field-heading spaced"><strong>FRAME</strong><span>Black ink only</span></div>
+        <div class="label-frame-grid" role="group" aria-label="Label frame style">
+          <button type="button" data-label-frame="rounded" class="label-frame-card active"><span class="frame-sample frame-rounded"></span><small>Rounded</small></button>
+          <button type="button" data-label-frame="double" class="label-frame-card"><span class="frame-sample frame-double"></span><small>Double</small></button>
+          <button type="button" data-label-frame="dashed" class="label-frame-card"><span class="frame-sample frame-dashed"></span><small>Stitched</small></button>
+          <button type="button" data-label-frame="corners" class="label-frame-card"><span class="frame-sample frame-corners"></span><small>Corners</small></button>
+          <button type="button" data-label-frame="none" class="label-frame-card"><span class="frame-sample frame-none"></span><small>None</small></button>
+        </div>
+        <label for="label-font" class="gap-top">Typeface</label>
+        <select id="label-font"><option value="modern">Modern · Segoe UI</option><option value="classic">Classic · Georgia</option><option value="rounded">Friendly · Trebuchet</option><option value="editorial">Editorial · Palatino</option><option value="typewriter">Typewriter · Courier</option><option value="display">Bold display · Impact</option></select>
+        <label for="label-title" class="gap-top">Headline</label><input id="label-title" type="text" maxlength="90" value="MADE WITH LOVE" placeholder="Your label title">
+        <label for="label-subtitle" class="gap-top">Secondary line</label><input id="label-subtitle" type="text" maxlength="140" value="A little something special" placeholder="Optional detail">
+        <button id="create-label" class="add-button" type="button">Create label <span>+</span></button>
+        <p id="label-note" class="helper-line">Preset sizes use a 50 mm design area on 53 mm continuous paper. They are not precut-sticker calibration.</p>
+      </section>
+
       <div class="sidebar-bottom">
         <div class="sidebar-note"><div class="note-title">How it works</div><p>Add content on the left, edit in the middle, manage layers on the right. Nothing is sent to your printer until you click Print.</p></div>
         <div class="printer-picker">
@@ -80,7 +107,7 @@
       <div class="content-area">
         <section id="canvas-stage" class="canvas-stage" aria-label="Print design workspace"><div class="workbench-grid"></div><div class="stage-caption"><span>PRINT PREVIEW</span><span>1:1 scale · 384 px</span></div><div class="paper-surround"><div class="paper-heading"><span>T02 / THERMAL ROLL</span><span>53 MM</span></div><div class="paper" id="paper"><canvas id="composition-canvas" width="384" height="640" tabindex="0" aria-label="Print design"></canvas><textarea id="inline-text" class="inline-text hidden" aria-label="Edit text"></textarea></div><div id="paper-resize" class="paper-resize-handle" role="slider" tabindex="0" aria-label="Adjust paper length" aria-valuemin="20" aria-valuemax="999" aria-valuenow="80"><div class="paper-cut"></div><span class="paper-grip">↕ Drag to resize paper</span></div><p id="paper-hint" class="paper-hint">Add a component from the left to begin.</p></div></section>
 
-        <aside class="layers-panel"><div class="layers-head"><div><span class="side-eyebrow">DOCUMENT</span><h3>Layers</h3></div><span id="block-count">0 items</span></div><div id="layers-list" class="layers-list"><p class="empty-layers">No layers yet.</p></div><div id="selection-properties" class="selection-properties hidden"><div class="properties-title"><h3>Properties</h3><span id="rotation-value">0°</span></div><div class="property-grid"><label>X <input id="prop-x" type="number" min="0"></label><label>Y <input id="prop-y" type="number" min="0"></label><label>Width <input id="prop-w" type="number" min="1"></label><label>Height <input id="prop-h" type="number" min="1"></label></div><div class="text-properties hidden" id="text-properties"><div class="property-grid"><label>Font size <input id="prop-font-size" type="number" min="8" max="100"></label><label>Alignment <select id="prop-align"><option value="left">Left</option><option value="center">Center</option><option value="right">Right</option></select></label></div><label class="check-row"><input id="prop-bold" type="checkbox"> Bold</label><button id="edit-text" type="button" class="secondary-button">Edit text</button></div><div class="text-properties hidden" id="image-properties"><label class="image-fit-label">Image fit<select id="prop-image-fit"><option value="contain">Keep proportions</option><option value="cover">Crop to fill</option><option value="stretch">Stretch</option></select></label></div><div class="action-group property-actions"><button type="button" id="move-up">Bring forward</button><button type="button" id="move-down">Send backward</button></div></div><div class="shortcuts"><span>SHORTCUTS</span><p><kbd>Ctrl</kbd> + <kbd>V</kbd> paste an image</p><p><kbd>Del</kbd> delete selection</p><p>Double-click to edit text</p><p>Drag the bottom edge to resize paper</p></div></aside>
+        <aside class="layers-panel"><div class="layers-head"><div><span class="side-eyebrow">DOCUMENT</span><h3>Layers</h3></div><span id="block-count">0 items</span></div><div id="layers-list" class="layers-list"><p class="empty-layers">No layers yet.</p></div><div id="selection-properties" class="selection-properties hidden"><div class="properties-title"><h3>Properties</h3><span id="rotation-value">0°</span></div><div class="property-grid"><label>X <input id="prop-x" type="number" min="0"></label><label>Y <input id="prop-y" type="number" min="0"></label><label>Width <input id="prop-w" type="number" min="1"></label><label>Height <input id="prop-h" type="number" min="1"></label></div><div class="text-properties hidden" id="text-properties"><div class="property-grid"><label>Font size <input id="prop-font-size" type="number" min="8" max="100"></label><label>Alignment <select id="prop-align"><option value="left">Left</option><option value="center">Center</option><option value="right">Right</option></select></label></div><label for="prop-font-family" class="typeface-property-label">Typeface</label><select id="prop-font-family" class="typeface-property-select"><option value="modern">Modern · Segoe UI</option><option value="classic">Classic · Georgia</option><option value="rounded">Friendly · Trebuchet</option><option value="editorial">Editorial · Palatino</option><option value="typewriter">Typewriter · Courier</option><option value="display">Bold display · Impact</option></select><label class="check-row"><input id="prop-bold" type="checkbox"> Bold</label><button id="edit-text" type="button" class="secondary-button">Edit text</button></div><div class="text-properties hidden" id="image-properties"><label class="image-fit-label">Image fit<select id="prop-image-fit"><option value="contain">Keep proportions</option><option value="cover">Crop to fill</option><option value="stretch">Stretch</option></select></label></div><div class="action-group property-actions"><button type="button" id="move-up">Bring forward</button><button type="button" id="move-down">Send backward</button></div></div><div class="shortcuts"><span>SHORTCUTS</span><p><kbd>Ctrl</kbd> + <kbd>V</kbd> paste an image</p><p><kbd>Del</kbd> delete selection</p><p>Double-click to edit text</p><p>Drag the bottom edge to resize paper</p></div></aside>
       </div>
 
       <footer class="print-footer"><div class="print-meta"><span>PAPER LENGTH</span><strong id="length-value">80 mm</strong><small id="length-note">384 dots · 203 DPI</small></div><div class="footer-actions"><button type="button" id="download-preview">Download PNG</button><button type="button" id="print-button" class="print-button" disabled>Print <span>↗</span></button></div></footer>

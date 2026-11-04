@@ -5,6 +5,22 @@ const T02StudioCore = (() => {
   const PAPER_WIDTH = 384;
   const MAX_HEIGHT = 8000;
   const DPI = 203;
+  // A 50 mm design fits inside the T02's 53 mm continuous roll.
+  const LABEL_SIZES = Object.freeze({
+    compact: Object.freeze({ name: "Compact", widthMm: 50, heightMm: 30 }),
+    classic: Object.freeze({ name: "Classic", widthMm: 50, heightMm: 50 }),
+    tall: Object.freeze({ name: "Tall", widthMm: 50, heightMm: 80 })
+  });
+  const LABEL_FRAMES = Object.freeze(["none", "rounded", "double", "dashed", "corners"]);
+  // These common desktop fonts work offline; no external font CDN is required.
+  const FONT_STACKS = Object.freeze({
+    modern: '"Segoe UI", Arial, sans-serif',
+    classic: 'Georgia, "Times New Roman", serif',
+    rounded: '"Trebuchet MS", Verdana, sans-serif',
+    editorial: '"Palatino Linotype", "Book Antiqua", Georgia, serif',
+    typewriter: '"Courier New", Courier, monospace',
+    display: 'Impact, "Arial Narrow", sans-serif'
+  });
 
   function mmToPx(mm) { return Math.round(Number(mm) * DPI / 25.4); }
   function pxToMm(px) { return Number(px) * 25.4 / DPI; }
@@ -46,7 +62,8 @@ const T02StudioCore = (() => {
     };
   }
 
-  return { PAPER_WIDTH, MAX_HEIGHT, DPI, mmToPx, pxToMm, flowLayout, clampBox, rotateBox };
+  return { PAPER_WIDTH, MAX_HEIGHT, DPI, LABEL_SIZES, LABEL_FRAMES, FONT_STACKS,
+    mmToPx, pxToMm, flowLayout, clampBox, rotateBox };
 })();
 
 if (typeof module !== "undefined" && module.exports) module.exports = T02StudioCore;
