@@ -2,7 +2,8 @@
 
 const $ = (id) => document.getElementById(id);
 const { PAPER_WIDTH, MAX_HEIGHT, LABEL_SIZES, LABEL_FRAMES, FRAME_NAMES, FONT_STACKS,
-  mmToPx, pxToMm, normalizeOpacity, flowLayout, clampBox, rotateBox } = T02StudioCore;
+  mmToPx, pxToMm, normalizeOpacity, normalizeFrameWidth, normalizeTextThickness,
+  flowLayout, clampBox, rotateBox } = T02StudioCore;
 const canvas = $("composition-canvas");
 const ctx = canvas.getContext("2d", { alpha: false });
 const work = {
@@ -12,7 +13,7 @@ const work = {
   history: [], future: [], imageFile: null, pdfFile: null, pdfSegment: 0,
   pdfTotal: 1, toastTimer: null, draftTimer: null, pointer: { x: 24, y: 24 },
   printerPort: "", printers: [], labelSize: "classic", labelFrame: "none", labelFont: "modern",
-  labelFrameChoice: "rounded", labelDesign: false
+  labelFrameChoice: "rounded", labelFrameWidth: 3, labelDesign: false
 };
 const imageCache = new Map();
 const MAX_ITEMS = 100;
@@ -40,7 +41,8 @@ function selected() { return work.items.find(item => item.id === work.selectedId
 function cloneItem(item) { return JSON.parse(JSON.stringify(item)); }
 function projectData() {
   return { version: 2, mode: work.mode, pageHeight: work.pageHeight,
-    labelSize: work.labelSize, labelFrame: work.labelFrame, labelFont: work.labelFont,
+    labelSize: work.labelSize, labelFrame: work.labelFrame, labelFrameWidth: work.labelFrameWidth,
+    labelFont: work.labelFont,
     labelDesign: work.labelDesign,
     items: work.items.map(cloneItem) };
 }
@@ -67,7 +69,10 @@ function restoreData(data) {
       x: Number(item.x) || 0, y: Number(item.y) || 0, w: Number(item.w) || 100, h: Number(item.h) || 50,
       hidden: Boolean(item.hidden), opacity: normalizeOpacity(item.opacity),
       rotation: [0, 90, 180, 270].includes(Number(item.rotation)) ? Number(item.rotation) : 0 };
-    if (safe.type === "frame") safe.frameStyle = LABEL_FRAMES.includes(safe.frameStyle) && safe.frameStyle !== "none" ? safe.frameStyle : "rounded";
+    if (safe.type === "frame") {
+      safe.frameStyle = LABEL_FRAMES.includes(safe.frameStyle) && safe.frameStyle !== "none" ? safe.frameStyle : "rounded";
+      safe.frameWidth = normalizeFrameWidth(safe.frameWidth);
+    }
     if (safe.type === "image" && !/^data:image\/(png|jpeg|webp);base64,/i.test(safe.src || ""))
       throw Error("Unsupported image in project");
     if (safe.type === "image") safe.fit = ["contain", "cover", "stretch"].includes(safe.fit) ? safe.fit : "contain";
@@ -77,6 +82,7 @@ function restoreData(data) {
       safe.align = ["left", "center", "right"].includes(safe.align) ? safe.align : "left";
       safe.bold = Boolean(safe.bold);
       safe.fontFamily = Object.hasOwn(FONT_STACKS, safe.fontFamily) ? safe.fontFamily : "modern";
+      safe.inkThickness = normalizeTextThickness(safe.inkThickness);
       safe.labelRole = ["title", "subtitle"].includes(safe.labelRole) ? safe.labelRole : "";
       safe.baseFontSize = Math.min(100, Math.max(8, Number(safe.baseFontSize) || safe.fontSize));
       safe.centerVertically = Boolean(safe.centerVertically);
@@ -88,6 +94,7 @@ function restoreData(data) {
   work.pageHeight = Math.max(mmToPx(20), Math.min(MAX_HEIGHT, Number(data.pageHeight) || mmToPx(150)));
   work.labelSize = Object.hasOwn(LABEL_SIZES, data.labelSize) ? data.labelSize : "classic";
   work.labelFrame = LABEL_FRAMES.includes(data.labelFrame) ? data.labelFrame : "none";
+  work.labelFrameWidth = normalizeFrameWidth(data.labelFrameWidth);
   work.labelFont = Object.hasOwn(FONT_STACKS, data.labelFont) ? data.labelFont : "modern";
   work.labelDesign = data.labelDesign === true;
   work.labelFrameChoice = work.labelDesign ? work.labelFrame : "rounded";
@@ -153,14 +160,20 @@ function fitTextToBox(item) {
 function paintText(context, item, box) {
   context.save();
   context.beginPath(); context.rect(box.x, box.y, box.w, box.h); context.clip();
-  context.fillStyle = "#000"; context.font = fontStyle(item); context.textBaseline = "top";
+  context.fillStyle = "#000"; context.strokeStyle = "#000";
+  context.font = fontStyle(item); context.textBaseline = "top";
+  const stroke = [0, 0, .25, .55, .9, 1.35][normalizeTextThickness(item.inkThickness)];
+  context.lineWidth = stroke; context.lineJoin = "round";
   context.textAlign = item.align || "left";
   const pad = Math.min(8, box.w / 8);
   const x = item.align === "center" ? box.x + box.w / 2 : item.align === "right" ? box.x + box.w - pad : box.x + pad;
   const lineHeight = Math.ceil(item.fontSize * 1.28);
   const lines = wrappedLines(context, item.text || "", Math.max(15, box.w - pad * 2));
   const top = item.centerVertically ? box.y + Math.max(4, (box.h - lines.length * lineHeight) / 2) : box.y + 7;
-  lines.forEach((line, index) => context.fillText(line, x, top + index * lineHeight));
+  lines.forEach((line, index) => {
+    context.fillText(line, x, top + index * lineHeight);
+    if (stroke > 0) context.strokeText(line, x, top + index * lineHeight);
+  });
   context.restore();
 }
 
@@ -180,35 +193,36 @@ function roundedBorder(context, x, y, width, height, radius) {
   context.stroke();
 }
 
-function drawFrame(context, style, box) {
+function drawFrame(context, style, box, frameWidth = 3) {
   if (style === "none" || box.w < 20 || box.h < 20) return;
   const x = box.x + 2, y = box.y + 2, width = box.w - 4, h = box.h - 4;
   context.save();
   context.strokeStyle = "#000";
   context.fillStyle = "#000";
-  context.lineWidth = 2.2;
+  const weight = normalizeFrameWidth(frameWidth);
+  context.lineWidth = weight;
   if (style === "rounded") roundedBorder(context, x, y, width, h, 16);
-  if (style === "solid") { context.lineWidth = 3; context.strokeRect(x, y, width, h); }
+  if (style === "solid") { context.lineWidth = weight * 1.2; context.strokeRect(x, y, width, h); }
   if (style === "double") {
-    context.lineWidth = 2.4;
+    context.lineWidth = weight;
     roundedBorder(context, x, y, width, h, 7);
-    context.lineWidth = 1.3;
+    context.lineWidth = Math.max(.9, weight * .58);
     if (width > 24 && h > 24) roundedBorder(context, x + 8, y + 8, width - 16, h - 16, 4);
   }
   if (style === "dashed") {
-    context.lineWidth = 2.6;
+    context.lineWidth = weight;
     context.setLineDash([10, 7]);
     roundedBorder(context, x, y, width, h, 5);
   }
   if (style === "dotted") {
-    context.lineWidth = 2.8; context.lineCap = "round"; context.setLineDash([1, 7]);
+    context.lineWidth = weight * 1.15; context.lineCap = "round"; context.setLineDash([1, 7]);
     roundedBorder(context, x, y, width, h, 3);
   }
   if (style === "corners") {
     const length = Math.min(48, Math.max(23, h / 5));
     const corners = [[x, y, 1, 1], [x + width, y, -1, 1],
       [x, y + h, 1, -1], [x + width, y + h, -1, -1]];
-    context.lineWidth = 3;
+    context.lineWidth = weight * 1.15;
     for (const [cx, cy, dx, dy] of corners) {
       context.beginPath(); context.moveTo(cx + dx * length, cy);
       context.lineTo(cx, cy); context.lineTo(cx, cy + dy * length); context.stroke();
@@ -225,8 +239,8 @@ function drawFrame(context, style, box) {
     context.closePath(); context.stroke();
   }
   if (style === "deco") {
-    context.lineWidth = 2.6; context.strokeRect(x, y, width, h);
-    if (width > 24 && h > 24) { context.lineWidth = 1.2; context.strokeRect(x + 8, y + 8, width - 16, h - 16); }
+    context.lineWidth = weight; context.strokeRect(x, y, width, h);
+    if (width > 24 && h > 24) { context.lineWidth = Math.max(.9, weight * .58); context.strokeRect(x + 8, y + 8, width - 16, h - 16); }
     for (const cy of [y, y + h]) {
       const cx = x + width / 2;
       context.beginPath(); context.moveTo(cx, cy - 6); context.lineTo(cx + 7, cy);
@@ -265,7 +279,7 @@ function drawFrame(context, style, box) {
 
 function drawLabelFrame(context, height) {
   if (height < 70) return;
-  drawFrame(context, work.labelFrame, { x: 11, y: 11, w: PAPER_WIDTH - 22, h: height - 22 });
+  drawFrame(context, work.labelFrame, { x: 11, y: 11, w: PAPER_WIDTH - 22, h: height - 22 }, work.labelFrameWidth);
 }
 
 function drawArtwork(context, geometry) {
@@ -283,7 +297,7 @@ function drawArtwork(context, geometry) {
     context.rotate((item.rotation || 0) * Math.PI / 180);
     context.globalAlpha = normalizeOpacity(item.opacity);
     if (item.type === "text") paintText(context, item, local);
-    else if (item.type === "frame") drawFrame(context, item.frameStyle, local);
+    else if (item.type === "frame") drawFrame(context, item.frameStyle, local, item.frameWidth);
     else if (item.type === "image") {
       const image = imageFor(item.src);
       if (image.complete && image.naturalWidth) {
@@ -394,7 +408,11 @@ function updateProperties(geometry) {
   $("text-properties").classList.toggle("hidden", item.type !== "text");
   $("image-properties").classList.toggle("hidden", item.type !== "image");
   $("frame-properties").classList.toggle("hidden", item.type !== "frame");
-  if (item.type === "frame") $("prop-frame-style").value = item.frameStyle;
+  if (item.type === "frame") {
+    $("prop-frame-style").value = item.frameStyle;
+    $("prop-frame-width").value = normalizeFrameWidth(item.frameWidth);
+    $("prop-frame-width-value").textContent = `${normalizeFrameWidth(item.frameWidth)} px`;
+  }
   const percentage = Math.round(normalizeOpacity(item.opacity) * 100);
   if (document.activeElement !== $("prop-opacity")) $("prop-opacity").value = percentage;
   $("prop-opacity-value").textContent = `${percentage}%`;
@@ -402,6 +420,8 @@ function updateProperties(geometry) {
   if (item.type === "text") {
     $("prop-font-size").value = item.fontSize;
     $("prop-font-family").value = item.fontFamily || "modern";
+    $("prop-ink-thickness").value = normalizeTextThickness(item.inkThickness);
+    $("prop-ink-thickness-value").textContent = `${normalizeTextThickness(item.inkThickness)} / 5`;
     $("prop-align").value = item.align;
     $("prop-bold").checked = item.bold;
   }
@@ -426,6 +446,7 @@ function addText(text, atPointer = false) {
   if (!text.trim()) throw Error("Enter some text first");
   const item = { type: "text", name: text.trim().slice(0, 34), text, fontSize: Number($("font-size").value),
     fontFamily: $("text-font-family").value, align: $("text-align").value, bold: $("text-bold").checked,
+    inkThickness: normalizeTextThickness($("text-ink-thickness").value),
     w: work.mode === "free" ? 290 : 352, h: 50 };
   item.h = requiredTextHeight(item);
   if (atPointer) work.pointer = atPointer;
@@ -445,6 +466,8 @@ function syncLabelControls() {
     button.setAttribute("aria-pressed", String(active));
   });
   $("label-font").value = work.labelFont;
+  $("label-frame-width").value = work.labelFrameWidth;
+  $("label-frame-width-value").textContent = `${work.labelFrameWidth} px`;
   $("label-note").textContent = work.labelDesign ?
     "Size and frame changes update this label. Select any text layer to adjust its typography." :
     "Preset sizes use a 50 mm design area on 53 mm continuous paper. They are not precut-sticker calibration.";
@@ -507,7 +530,8 @@ function addFrameLayer() {
   if (work.mode !== "free") switchMode("free");
   const height = Math.max(60, Math.min(work.pageHeight - 52, mmToPx(80) - 52));
   const item = { type: "frame", name: `${FRAME_NAMES[work.labelFrameChoice]} frame`,
-    frameStyle: work.labelFrameChoice, rotation: 0, opacity: 1, w: PAPER_WIDTH - 54, h: height };
+    frameStyle: work.labelFrameChoice, frameWidth: work.labelFrameWidth,
+    rotation: 0, opacity: 1, w: PAPER_WIDTH - 54, h: height };
   addItem(item, { x: 27, y: Math.round((work.pageHeight - height) / 2) });
   toast("Frame layer added. Move its edge or edit its style in Layers.");
 }
@@ -528,6 +552,7 @@ function createLabel() {
     const item = { id: uid(), type: "text", name: text.slice(0, 34), text,
       x: 31, y: 0, w: 322, h: 90, rotation: 0, hidden: false,
       fontSize: size, baseFontSize: size, labelRole: role, centerVertically: true,
+      inkThickness: role === "subtitle" ? 4 : 3,
       fontFamily: work.labelFont, align: "center", bold };
     items.push(item);
   }
@@ -616,14 +641,14 @@ function undo() {
   finishInlineEdit(); work.future.push(JSON.stringify(projectData()));
   const state = JSON.parse(work.history.pop());
   const earlier = work.history.slice(); const later = work.future.slice();
-  restoreData(state); work.history = earlier; work.future = later; render();
+  restoreData(state); work.history = earlier; work.future = later; render(); scheduleDraft();
 }
 function redo() {
   if (!work.future.length) return;
   finishInlineEdit(); work.history.push(JSON.stringify(projectData()));
   const state = JSON.parse(work.future.pop());
   const earlier = work.history.slice(); const later = work.future.slice();
-  restoreData(state); work.history = earlier; work.future = later; render();
+  restoreData(state); work.history = earlier; work.future = later; render(); scheduleDraft();
 }
 
 function pointerPosition(event) {
@@ -950,6 +975,16 @@ function bind() {
   document.querySelectorAll("[data-mode]").forEach(button => button.addEventListener("click", () => switchMode(button.dataset.mode)));
   document.querySelectorAll("[data-label-size]").forEach(button => button.addEventListener("click", () => setLabelSize(button.dataset.labelSize)));
   document.querySelectorAll("[data-label-frame]").forEach(button => button.addEventListener("click", () => setLabelFrame(button.dataset.labelFrame)));
+  let frameWidthEditing = false;
+  $("label-frame-width").addEventListener("input", () => {
+    const value = normalizeFrameWidth($("label-frame-width").value);
+    if (value === work.labelFrameWidth) return;
+    if (!frameWidthEditing) { checkpoint(); frameWidthEditing = true; }
+    work.labelFrameWidth = value;
+    $("label-frame-width-value").textContent = `${value} px`;
+    render(); scheduleDraft();
+  });
+  for (const event of ["change", "blur"]) $("label-frame-width").addEventListener(event, () => { frameWidthEditing = false; });
   $("add-frame").addEventListener("click", () => {
     try { addFrameLayer(); } catch (error) { toast(error.message, true); }
   });
@@ -967,6 +1002,9 @@ function bind() {
   });
   $("create-label").addEventListener("click", createLabel);
   $("font-size").addEventListener("input", () => $("font-size-output").textContent = `${$("font-size").value} px`);
+  $("text-ink-thickness").addEventListener("input", () => {
+    $("text-ink-thickness-value").textContent = `${$("text-ink-thickness").value} / 5`;
+  });
   $("add-text").addEventListener("click", () => { try { addText($("text-input").value); } catch (error) { toast(error.message, true); } });
   attachFileInput("image-file", "image-drop", file => {
     work.imageFile = file; $("image-name").textContent = `${file.name} (${Math.ceil(file.size / 1024)} KB)`;
@@ -1013,6 +1051,20 @@ function bind() {
     render(); scheduleDraft();
   });
   for (const event of ["change", "blur"]) $("prop-opacity").addEventListener(event, () => { opacityEditingId = null; });
+  function bindSelectedThickness(id, key, normalize) {
+    let editingId = null;
+    const input = $(id);
+    input.addEventListener("input", () => {
+      const item = selected(); if (!item) return;
+      const value = normalize(input.value);
+      if (item[key] === value) return;
+      if (editingId !== item.id) { checkpoint(); editingId = item.id; }
+      item[key] = value; render(); scheduleDraft();
+    });
+    for (const event of ["change", "blur"]) input.addEventListener(event, () => { editingId = null; });
+  }
+  bindSelectedThickness("prop-ink-thickness", "inkThickness", normalizeTextThickness);
+  bindSelectedThickness("prop-frame-width", "frameWidth", normalizeFrameWidth);
   $("prop-frame-style").addEventListener("change", () => {
     const item = selected(), style = $("prop-frame-style").value;
     if (!item || item.type !== "frame" || !LABEL_FRAMES.includes(style) || style === "none") return;
@@ -1102,7 +1154,8 @@ function bind() {
   $("clear-project").addEventListener("click", () => {
     if ((!work.items.length && work.labelFrame === "none") || !window.confirm("Clear the entire print design?")) return;
     checkpoint(); work.items = []; work.selectedId = null; work.labelFrame = "none"; work.labelDesign = false;
-    work.labelFrameChoice = "rounded"; syncLabelControls(); render(); scheduleDraft();
+    work.labelFrameChoice = "rounded"; work.pageHeight = mmToPx(150);
+    syncLabelControls(); render(); scheduleDraft(); toast("All layers cleared. Use Undo to restore your design.");
   });
   $("canvas-stage").addEventListener("dragover", event => event.preventDefault());
   $("canvas-stage").addEventListener("drop", event => {

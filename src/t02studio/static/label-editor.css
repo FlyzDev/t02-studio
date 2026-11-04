@@ -42,6 +42,14 @@
 .opacity-heading output { font-size: 11px; font-variant-numeric: tabular-nums; }
 .opacity-control input[type="range"] { display: block; width: 100%; margin: 9px 0 6px; accent-color: #6e92d1; }
 .opacity-control small { display: block; font-size: 10px; line-height: 1.45; color: #7d8a9a; }
+.thickness-control { margin: 15px 0 12px; }
+.thickness-heading { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 11px; font-weight: 650; }
+.thickness-heading label { margin: 0; font: inherit; }
+.thickness-heading output { color: #5f80bc; font-size: 11px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.thickness-control input[type="range"] { display: block; width: 100%; margin: 10px 0 6px; accent-color: #6e92d1; }
+.thickness-control small { display: block; color: #7d8a9a; font-size: 10px; line-height: 1.45; }
+.action-group button.clear-all-button { color: #bb6868; border-color: #9a58583b; }
+.action-group button.clear-all-button:hover:not(:disabled) { background: #982f2f22; color: #d36d6d; }
 .frame-properties { margin: 10px 0; }
 .frame-properties label { display: block; font-size: 11px; margin-bottom: 6px; }
 .frame-properties select { width: 100%; min-height: 35px; padding: 6px; border: 1px solid #dce3eb; border-radius: 6px; background: #fff; color: #3e4a5b; }
@@ -61,6 +69,10 @@ html[data-theme="dark"] .label-add-frame { background: #263952; color: #cbdafb; 
 html[data-theme="dark"] .label-add-frame:hover { background: #304968; }
 html[data-theme="dark"] .opacity-control { border-color: #303945; }
 html[data-theme="dark"] .opacity-control small { color: #94a4b7; }
+html[data-theme="dark"] .thickness-control small { color: #94a4b7; }
+html[data-theme="dark"] .thickness-heading output { color: #9cb9ef; }
+html[data-theme="dark"] .action-group button.clear-all-button { color: #e99b9b; border-color: #8f565660; }
+html[data-theme="dark"] .action-group button.clear-all-button:hover:not(:disabled) { background: #8e393934; color: #ffc1c1; }
 html[data-theme="dark"] .frame-properties select { background: #11161d; color: #e6e9ef; border-color: #3a4350; }
 html[data-theme="dark"] .typeface-property-label { color: #a9b5c6; }
 html[data-theme="dark"] .typeface-property-select { background: #11161d; color: #e6e9ef; border-color: #3a4350; }

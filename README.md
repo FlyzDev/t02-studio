@@ -27,10 +27,13 @@ Open **Label designer** from the left sidebar to start with a ready-to-edit labe
 - Three presets: **50 × 30**, **50 × 50**, and **50 × 80 mm**.
 - Eleven monochrome frame choices: no frame, rounded, double, stitched, corners, classic, dotted, scalloped, ticket, Art Deco, and wavy.
 - **Add independent frame layer** creates another resizable frame over the same canvas. Stack, duplicate, reorder or delete frame layers individually; click their border or select them from Layers to edit their style.
+- The **Frame line width** slider ranges from 1 to 7 px (0.5 px increments), defaulting to a stronger 3 px. The label outline and each frame layer have independent, editable line widths.
 - Six offline system-font families, including editorial serif, rounded, bold display, and typewriter. Each text layer can change its typeface independently.
+- **Text thickness** (1–5) adds a controllable ink stroke around glyphs for better legibility on 203 DPI thermal paper. New text defaults to 4/5; label headlines start at 3/5 and smaller secondary lines at 4/5. Each text layer has its own setting.
 - Editable headline and secondary line; labels open directly in Free edit for repositioning and resizing. Changing a preset or frame can update an existing label.
 - Every text, image, PDF/QR image and frame layer has an **Opacity (0–100%)** slider. Partially transparent ink is composited against the paper's white background; the resulting gray levels are dithered for the monochrome printer.
-- Frames, per-layer opacity, dimensions, and font choices persist in project JSON and are rendered through the same canvas path for on-screen preview, PNG, and print. Version-2 projects without opacity values continue to render as fully opaque.
+- Frames, stroke weights, text thickness, per-layer opacity, dimensions, and font choices persist in project JSON and are rendered through the same canvas path for on-screen preview, PNG, and print. Older version-2 projects without weight or opacity values load with safe new defaults.
+- The toolbar **Clear all** button asks for confirmation before removing every layer and the label outline, and the operation can be reversed with **Undo**. It does not delete saved JSON files.
 
 These are layout presets for **53 mm continuous-roll paper** with approximately 50 mm of artwork width. They are not calibration profiles for precut die-cut stickers or separate label media. Font appearance may vary if another computer does not have the same desktop fonts; exporting a PNG rasterizes the chosen appearance.
 

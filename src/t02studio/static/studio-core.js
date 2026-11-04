@@ -34,6 +34,16 @@ const T02StudioCore = (() => {
     const number = Number(value);
     return Number.isFinite(number) ? Math.max(0, Math.min(1, number)) : 1;
   }
+  function normalizeFrameWidth(value) {
+    if (value === undefined || value === null || value === "") return 3;
+    const number = Number(value);
+    return Number.isFinite(number) ? Math.max(1, Math.min(7, Math.round(number * 2) / 2)) : 3;
+  }
+  function normalizeTextThickness(value) {
+    if (value === undefined || value === null || value === "") return 3;
+    const number = Number(value);
+    return Number.isFinite(number) ? Math.max(1, Math.min(5, Math.round(number))) : 3;
+  }
 
   function flowLayout(items, padding = 16, gap = 12) {
     const available = PAPER_WIDTH - 2 * padding;
@@ -73,7 +83,8 @@ const T02StudioCore = (() => {
   }
 
   return { PAPER_WIDTH, MAX_HEIGHT, DPI, LABEL_SIZES, LABEL_FRAMES, FRAME_NAMES, FONT_STACKS,
-    mmToPx, pxToMm, normalizeOpacity, flowLayout, clampBox, rotateBox };
+    mmToPx, pxToMm, normalizeOpacity, normalizeFrameWidth, normalizeTextThickness,
+    flowLayout, clampBox, rotateBox };
 })();
 
 if (typeof module !== "undefined" && module.exports) module.exports = T02StudioCore;

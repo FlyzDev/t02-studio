@@ -2,7 +2,8 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const { mmToPx, pxToMm, flowLayout, clampBox, rotateBox, PAPER_WIDTH, MAX_HEIGHT,
-  LABEL_SIZES, LABEL_FRAMES, FRAME_NAMES, FONT_STACKS, normalizeOpacity } = require('../src/t02studio/static/studio-core.js');
+  LABEL_SIZES, LABEL_FRAMES, FRAME_NAMES, FONT_STACKS, normalizeOpacity,
+  normalizeFrameWidth, normalizeTextThickness } = require('../src/t02studio/static/studio-core.js');
 
 assert.equal(PAPER_WIDTH, 384);
 assert.equal(MAX_HEIGHT, 8000);
@@ -21,6 +22,14 @@ assert.equal(normalizeOpacity(0.35), 0.35);
 assert.equal(normalizeOpacity(-5), 0);
 assert.equal(normalizeOpacity(9), 1);
 assert.equal(normalizeOpacity('NaN'), 1);
+assert.equal(normalizeFrameWidth(), 3);
+assert.equal(normalizeFrameWidth('2.8'), 3);
+assert.equal(normalizeFrameWidth(0), 1);
+assert.equal(normalizeFrameWidth(20), 7);
+assert.equal(normalizeTextThickness(), 3);
+assert.equal(normalizeTextThickness(4.4), 4);
+assert.equal(normalizeTextThickness(-3), 1);
+assert.equal(normalizeTextThickness(20), 5);
 assert.equal(Object.keys(FONT_STACKS).length, 6);
 
 const blocks = [
@@ -59,7 +68,8 @@ for (const page of ['studio.html', 'studio_alt.html']) {
   const html = fs.readFileSync(path.join(__dirname, '../src/t02studio/templates', page), 'utf8');
   for (const id of ['create-label', 'add-frame', 'label-font', 'label-title', 'label-subtitle',
     'prop-font-family', 'text-font-family', 'prop-opacity', 'prop-opacity-value',
-    'prop-frame-style', 'frame-properties']) {
+    'prop-frame-style', 'frame-properties', 'text-ink-thickness', 'prop-ink-thickness',
+    'label-frame-width', 'prop-frame-width', 'clear-project']) {
     assert.ok(html.includes(`id="${id}"`), `${page}: missing ${id}`);
   }
   for (const size of Object.keys(LABEL_SIZES)) assert.ok(html.includes(`data-label-size="${size}"`));
@@ -69,4 +79,6 @@ assert.ok(source.includes('createUuidV4()'));
 assert.ok(source.includes('clipboardData'));
 assert.ok(source.includes('context.globalAlpha = normalizeOpacity(item.opacity)'));
 assert.ok(source.includes('item.type === "frame"'));
+assert.ok(source.includes('context.strokeText(line'));
+assert.ok(source.includes('toast("All layers cleared. Use Undo to restore your design.")'));
 console.log('studio core tests OK');
