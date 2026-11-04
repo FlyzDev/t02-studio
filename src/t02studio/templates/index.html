@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#111820">
+  <title>T02 Studio</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand-row">
+        <div class="brand-mark"><span>02</span></div>
+        <div>
+          <div class="brand-name">T02 <em>Studio</em></div>
+          <div class="brand-subtitle">Yerel baskı atölyesi</div>
+        </div>
+      </div>
+
+      <div class="section-label">OLUŞTUR</div>
+      <nav class="mode-tabs" aria-label="İçerik türü">
+        <button class="mode-tab active" type="button" data-kind="text"><span class="tab-icon">T</span> Metin</button>
+        <button class="mode-tab" type="button" data-kind="image"><span class="tab-icon">▧</span> Görsel</button>
+        <button class="mode-tab" type="button" data-kind="pdf"><span class="tab-icon">▤</span> PDF</button>
+        <button class="mode-tab" type="button" data-kind="qr"><span class="tab-icon">▦</span> QR</button>
+      </nav>
+
+      <form id="editor-form" autocomplete="off">
+        <section class="editor-panel" data-panel="text">
+          <div class="panel-heading"><h2>Metin tasarımı</h2><p>Notlar, listeler ve kısa etiketler.</p></div>
+          <label for="text-input">Yazdırılacak metin</label>
+          <textarea id="text-input" name="text" rows="8" spellcheck="true">Bugün güzel bir gün.
+Küçük bir not, büyük bir gülümseme! ♡</textarea>
+          <div class="row-field">
+            <label for="font-size">Yazı boyutu <output id="font-size-value">25 px</output></label>
+            <input id="font-size" name="font_size" type="range" min="12" max="50" value="25">
+          </div>
+          <div class="row-field">
+            <label for="padding">Kenar boşluğu <output id="padding-value">16 px</output></label>
+            <input id="padding" name="padding" type="range" min="0" max="48" value="16">
+          </div>
+          <div class="field-grid">
+            <label class="field-block">Hizalama
+              <select id="align" name="align"><option value="left">Sola</option><option value="center">Ortaya</option><option value="right">Sağa</option></select>
+            </label>
+            <label class="switch-row"><input id="bold" name="bold" type="checkbox"><span>Kalın yazı</span></label>
+          </div>
+        </section>
+
+        <section class="editor-panel hidden" data-panel="image">
+          <div class="panel-heading"><h2>Görsel baskısı</h2><p>Fotoğrafı T02'nin siyah-beyaz baskısına hazırla.</p></div>
+          <label class="upload-zone" for="image-file" id="image-drop">
+            <span class="upload-icon">⇧</span>
+            <strong>Görsel seç veya buraya bırak</strong>
+            <small>PNG, JPG, WEBP · En fazla 10 MB</small>
+            <span class="selected-file" id="image-name">Henüz dosya seçilmedi</span>
+          </label>
+          <input id="image-file" type="file" accept="image/png,image/jpeg,image/webp,image/gif,image/bmp" hidden>
+          <div class="field-grid">
+            <label class="field-block">Yerleştirme
+              <select id="image-mode"><option value="fit">Genişliğe sığdır</option><option value="cover">Kırparak doldur</option></select>
+            </label>
+            <label class="field-block">Döndür
+              <select id="rotate"><option value="0">0°</option><option value="90">90°</option><option value="180">180°</option><option value="270">270°</option></select>
+            </label>
+          </div>
+          <div class="row-field hidden" id="target-height-wrap">
+            <label for="target-height-mm">Hedef uzunluk <output id="target-height-mm-value">40 mm</output></label>
+            <input id="target-height-mm" type="range" min="15" max="200" value="40">
+          </div>
+          <div class="row-field"><label for="density">Siyah yoğunluğu <output id="density-value">50%</output></label><input id="density" type="range" min="0" max="100" value="50"></div>
+          <div class="row-field"><label for="contrast">Kontrast <output id="contrast-value">1.0×</output></label><input id="contrast" type="range" min="50" max="250" value="120"></div>
+          <div class="row-field"><label for="brightness">Parlaklık <output id="brightness-value">1.0×</output></label><input id="brightness" type="range" min="50" max="200" value="100"></div>
+          <div class="row-field"><label for="sharpness">Keskinlik <output id="sharpness-value">1.0×</output></label><input id="sharpness" type="range" min="50" max="250" value="130"></div>
+          <label class="switch-row"><input id="dither" type="checkbox" checked><span>Fotoğraf için noktalama (dithering)</span></label>
+          <div class="hint-box">İpucu: Fotoğraflarda noktalama açık, logo ve çizimlerde kapalı daha net sonuç verebilir.</div>
+        </section>
+
+        <section class="editor-panel hidden" data-panel="pdf">
+          <div class="panel-heading"><h2>Akıllı PDF dönüşümü</h2><p>Belgeleri okunabilir termal şeritlere dönüştür.</p></div>
+          <label class="upload-zone" for="pdf-file" id="pdf-drop">
+            <span class="upload-icon">▤</span>
+            <strong>PDF seç veya buraya bırak</strong>
+            <small>En fazla 30 MB · Baskıda 20 sayfa sınırı</small>
+            <span class="selected-file" id="pdf-name">Henüz dosya seçilmedi</span>
+          </label>
+          <input id="pdf-file" type="file" accept="application/pdf,.pdf" hidden>
+          <label class="input-label">Dönüştürme yöntemi</label>
+          <div class="pdf-modes">
+            <label class="pdf-choice selected"><input type="radio" name="pdf-mode" value="smart" checked><strong>Akıllı</strong><small>Yazıları yeniden dizer</small></label>
+            <label class="pdf-choice"><input type="radio" name="pdf-mode" value="fit"><strong>Orijinal</strong><small>Sayfayı küçültür</small></label>
+            <label class="pdf-choice"><input type="radio" name="pdf-mode" value="tile"><strong>Parçalı</strong><small>Geniş içerikleri böler</small></label>
+          </div>
+          <label class="field-block" for="pages">Sayfalar <span class="muted">(boş = tümü)</span>
+            <input id="pages" type="text" placeholder="Örn. 1,3-5">
+          </label>
+          <label class="switch-row"><input id="ocr" type="checkbox"><span>Taranmış PDF için yerel OCR dene</span></label>
+          <div class="hint-box">Akıllı mod metin PDF'lerinde en okunabilir sonuçları verir. Taranmış belgelerde OCR kurulu değilse Orijinal modunu seçebilirsin.</div>
+        </section>
+
+        <section class="editor-panel hidden" data-panel="qr">
+          <div class="panel-heading"><h2>QR & etiket</h2><p>Bağlantıları, Wi-Fi bilgilerini veya notları kodla.</p></div>
+          <label class="field-block" for="qr-value">QR içeriği
+            <textarea id="qr-value" rows="4" placeholder="https://...">https://example.com</textarea>
+          </label>
+          <label class="field-block" for="qr-caption">Altına yazılacak metin
+            <input id="qr-caption" type="text" placeholder="Örn. Hediye etiketi" maxlength="90">
+          </label>
+          <div class="hint-box">QR kodu yazdırdıktan sonra telefon kamerasıyla test et. Çok uzun bağlantılar küçük baskıda zor okunabilir.</div>
+        </section>
+      </form>
+
+      <div class="sidebar-bottom">
+        <div class="mini-stat"><span class="status-led" id="status-led"></span><span id="printer-status">Bağlantı kontrol ediliyor</span></div>
+        <button class="text-button" id="refresh-status" type="button">Durumu yenile</button>
+      </div>
+    </aside>
+
+    <main class="workspace">
+      <header class="workspace-head">
+        <div><div class="eyebrow">CANLI BASKI ÖNİZLEMESİ</div><h1>Tasarla. Kontrol et. Bas.</h1></div>
+        <div class="head-actions"><span class="privacy-badge">⌁ Yalnızca yerel ağ · Giriş yok</span></div>
+      </header>
+
+      <div class="canvas-toolbar">
+        <div class="width-pill"><span class="dot"></span> 53 mm rulo <span class="muted">· 384 nokta · 203 DPI</span></div>
+        <button id="refresh-preview" class="secondary-button" type="button">↻ Önizlemeyi yenile</button>
+      </div>
+
+      <div class="paper-stage" id="paper-stage">
+        <div class="stage-grid"></div>
+        <div class="paper-wrap">
+          <div class="paper-top"><span>THERMAL PREVIEW</span><span>384 px</span></div>
+          <div class="paper" id="paper">
+            <div class="preview-placeholder" id="preview-placeholder"><span>▥</span><strong>Önizleme burada görünecek</strong><small>Soldan içerik seçerek başlayabilirsin.</small></div>
+            <img id="preview-image" alt="Baskı önizlemesi" class="hidden">
+          </div>
+          <div class="paper-cut"><span>✂</span></div>
+          <div class="paper-shadow"></div>
+        </div>
+      </div>
+
+      <div class="pdf-segment-bar hidden" id="pdf-segment-controls">
+        <button class="secondary-button" id="pdf-previous" type="button">← Önceki</button>
+        <div class="pdf-segment-info"><span>PDF BASKI PARÇASI</span><strong id="pdf-segment-label">1 / 1</strong><small>Her parça ayrı yazdırılır</small></div>
+        <button class="secondary-button" id="pdf-next" type="button">Sonraki →</button>
+      </div>
+
+      <div class="workspace-footer">
+        <div class="job-summary"><span>TAHMİNİ ŞERİT UZUNLUĞU</span><strong id="length-value">— mm</strong><small id="length-note">Önizleme bekleniyor</small></div>
+        <div class="print-actions"><button class="secondary-button" id="download-preview" type="button" disabled>↓ PNG indir</button><button class="primary-button" id="print-button" type="button" disabled><span>▧</span> T02'ye Yazdır</button></div>
+      </div>
+    </main>
+  </div>
+
+  <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
+  <script src="/static/app.js" defer></script>
+</body>
+</html>

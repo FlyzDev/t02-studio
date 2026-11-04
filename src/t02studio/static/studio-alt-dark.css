@@ -1,0 +1,130 @@
+/* Dark theme for the optional editor. Matte neutrals, visible contrast and a
+   single low-chroma blue accent. The thermal paper itself remains white. */
+html[data-theme="dark"] {
+  color-scheme: dark;
+  background: #101318;
+  color: #e3e7ee;
+  --ink: #e3e7ee;
+  --muted: #9da5b0;
+  --line: #303640;
+  --blue: #88a7f8;
+  --focus: #91b0ff;
+}
+html[data-theme="dark"] .tool-sidebar,
+html[data-theme="dark"] .layers-panel,
+html[data-theme="dark"] .top-bar,
+html[data-theme="dark"] .edit-toolbar,
+html[data-theme="dark"] .print-footer { background: #171b22; border-color: #303640; }
+html[data-theme="dark"] .main-area { background: #101318; }
+html[data-theme="dark"] .canvas-stage { background: #11151b; }
+html[data-theme="dark"] .brand-monogram { background: #e0e7f3; color: #17202d; }
+html[data-theme="dark"] .brand-monogram span { color: #526da2; }
+html[data-theme="dark"] .brand-name strong { color: #e9edf3; }
+html[data-theme="dark"] .brand-name small { color: #929cab; }
+html[data-theme="dark"] .side-heading { color: #8c96a6; }
+html[data-theme="dark"] .hint-key { color: #717d8e; }
+html[data-theme="dark"] .tool-tab { color: #b8c0cd; background: #1c212a; border-color: #343c48; }
+html[data-theme="dark"] .tool-tab:hover { background: #242b36; border-color: #556377; }
+html[data-theme="dark"] .tool-tab.active { color: #cad9ff; background: #24334d; border-color: #5471a7; }
+html[data-theme="dark"] .tab-number { color: #98a6ba; background: #292f39; }
+html[data-theme="dark"] .tool-tab.active .tab-number { color: #bcd0ff; background: #344a6a; }
+html[data-theme="dark"] .panel-intro h2 { color: #e8ebf1; }
+html[data-theme="dark"] .panel-intro p { color: #9ba5b1; }
+html[data-theme="dark"] .tool-panel > label:not(.drop-target):not(.check-row),
+html[data-theme="dark"] .tool-panel .control-row label { color: #c0c8d4; }
+html[data-theme="dark"] .tool-panel textarea,
+html[data-theme="dark"] .tool-panel input[type=text],
+html[data-theme="dark"] .tool-panel select,
+html[data-theme="dark"] .height-controls input[type=number],
+html[data-theme="dark"] .property-grid input,
+html[data-theme="dark"] .property-grid select,
+html[data-theme="dark"] .image-fit-label select { color: #e6e9ef; background: #11161d; border-color: #3a4350; }
+html[data-theme="dark"] .tool-panel textarea::placeholder,
+html[data-theme="dark"] .tool-panel input::placeholder { color: #7b8593; }
+html[data-theme="dark"] .control-row output { color: #aab4c1; }
+html[data-theme="dark"] .check-row { color: #b8c3d0; }
+html[data-theme="dark"] .quiet { color: #7c8795; }
+html[data-theme="dark"] .add-button { background: #6588d5; color: #101b2d; border-color: #6588d5; }
+html[data-theme="dark"] .add-button:hover { background: #8daaf1; }
+html[data-theme="dark"] .drop-target { background: #1b212a; border-color: #465365; }
+html[data-theme="dark"] .drop-target:hover,
+html[data-theme="dark"] .drop-target.over { background: #202b3c; border-color: #6688bd; }
+html[data-theme="dark"] .upload-symbol { color: #bac8dc; background: #2b3544; }
+html[data-theme="dark"] .drop-target strong { color: #cbd3df; }
+html[data-theme="dark"] .drop-target small { color: #9ca7b5; }
+html[data-theme="dark"] .drop-target .file-name { color: #98b5ff; }
+html[data-theme="dark"] .helper-line { color: #94a0ae; }
+html[data-theme="dark"] .pdf-segment-nav { border-color: #384351; color: #b1bdcb; }
+html[data-theme="dark"] .pdf-segment-nav button { color: #d5dfed; background: #2a3340; }
+html[data-theme="dark"] .pdf-segment-nav button:hover { background: #384455; }
+html[data-theme="dark"] .sidebar-note { background: #1c222b; border-color: #313944; }
+html[data-theme="dark"] .note-title { color: #c3ccd8; }
+html[data-theme="dark"] .sidebar-note p { color: #9aa6b4; }
+html[data-theme="dark"] .printer-state { color: #a1aebd; border-color: #323a46; }
+html[data-theme="dark"] .printer-state button { color: #a4b6cf; }
+html[data-theme="dark"] .breadcrumb { color: #8793a3; }
+html[data-theme="dark"] .breadcrumb span { color: #586577; }
+html[data-theme="dark"] .title-stack h1 { color: #f0f3f7; }
+html[data-theme="dark"] .title-stack p { color: #9ca6b6; }
+html[data-theme="dark"] .original-link { color: #a9b6ca; }
+html[data-theme="dark"] .original-link:hover { color: #d2ddf8; }
+html[data-theme="dark"] .theme-toggle { color: #b9c6d8; border-color: #394451; background: #242b36; }
+html[data-theme="dark"] .theme-toggle:hover { background: #303c4d; }
+html[data-theme="dark"] .mode-switch { background: #222831; border-color: #343d49; }
+html[data-theme="dark"] .mode-switch button { color: #a7b1c0; }
+html[data-theme="dark"] .mode-switch button.active { color: #e6ecf6; background: #3b4554; box-shadow: 0 1px 4px #0002, 0 0 0 1px #556171; }
+html[data-theme="dark"] .edit-toolbar,
+html[data-theme="dark"] .free-toolbar { border-color: #303640; }
+html[data-theme="dark"] .free-toolbar { background: #1d232c; }
+html[data-theme="dark"] .action-group button,
+html[data-theme="dark"] .height-controls button { color: #bac3cf; }
+html[data-theme="dark"] .action-group button:hover:not(:disabled),
+html[data-theme="dark"] .height-controls button:hover:not(:disabled) { color: #e4eaf3; background: #2c3541; }
+html[data-theme="dark"] .action-group button.active { color: #cad9ff; background: #2b3d58; border-color: #52698f; }
+html[data-theme="dark"] .toolbar-divider { background: #35404b; }
+html[data-theme="dark"] .height-controls { color: #aeb9c7; }
+html[data-theme="dark"] .height-controls button { border-color: #3c4654; background: #262e39; }
+html[data-theme="dark"] .stage-caption { color: #8491a3; }
+html[data-theme="dark"] .paper-heading { background: #d9dfe6; border-color: #bbc5d1; color: #69798c; }
+html[data-theme="dark"] .paper { box-shadow: 0 25px 50px #03060b6b, 0 1px 4px #0008; }
+html[data-theme="dark"] .paper-grip { background: #28323f; border-color: #3f5063; color: #b4c3d4; box-shadow: 0 3px 14px #05090e88; }
+html[data-theme="dark"] .paper-resize-handle:hover .paper-grip,
+html[data-theme="dark"] .paper-resize-handle.dragging .paper-grip { background: #30476a; color: #e0eafe; border-color: #7296cf; }
+html[data-theme="dark"] .paper-hint { color: #909eaf; }
+html[data-theme="dark"] .layers-head { border-color: #303640; }
+html[data-theme="dark"] .side-eyebrow { color: #8e9ba9; }
+html[data-theme="dark"] .layers-head h3,
+html[data-theme="dark"] .properties-title h3 { color: #e6eaf0; }
+html[data-theme="dark"] .layers-head > span { color: #939faf; }
+html[data-theme="dark"] .empty-layers { border-color: #3b4552; color: #8797aa; }
+html[data-theme="dark"] .layer-item { border-color: #3a4552; background: #1d2530; }
+html[data-theme="dark"] .layer-item:hover { background: #27313e; }
+html[data-theme="dark"] .layer-item.active { background: #263952; border-color: #6787b7; }
+html[data-theme="dark"] .layer-symbol { background: #303a48; color: #c2cfde; }
+html[data-theme="dark"] .layer-item.active .layer-symbol { background: #3b5275; color: #d6e3fd; }
+html[data-theme="dark"] .layer-text strong { color: #d5dde8; }
+html[data-theme="dark"] .layer-text small { color: #9ba7b7; }
+html[data-theme="dark"] .layer-visibility { color: #b8c8d8; }
+html[data-theme="dark"] .selection-properties,
+html[data-theme="dark"] .text-properties { border-color: #323e4b; }
+html[data-theme="dark"] #rotation-value,
+html[data-theme="dark"] .property-grid label,
+html[data-theme="dark"] .image-fit-label { color: #a9b5c6; }
+html[data-theme="dark"] .secondary-button { border-color: #3c4758; color: #c7d5eb; background: #273343; }
+html[data-theme="dark"] .secondary-button:hover { background: #354359; }
+html[data-theme="dark"] .property-actions button { border-color: #3b4755; }
+html[data-theme="dark"] .shortcuts { color: #9cabbc; }
+html[data-theme="dark"] .shortcuts > span { color: #a2afbf; }
+html[data-theme="dark"] kbd { background: #272f3c; border-color: #394555; color: #c6d1df; }
+html[data-theme="dark"] .print-meta > span { color: #8f9cac; }
+html[data-theme="dark"] .print-meta strong { color: #f0f2f5; }
+html[data-theme="dark"] .print-meta small { color: #9da7b5; }
+html[data-theme="dark"] .footer-actions button { background: #222b37; border-color: #3a4757; color: #d5deeb; }
+html[data-theme="dark"] .footer-actions button:hover:not(:disabled) { background: #303b4a; }
+html[data-theme="dark"] .footer-actions .print-button { background: #dce5f5; color: #1b2738; border-color: #dce5f5; }
+html[data-theme="dark"] .footer-actions .print-button:hover:not(:disabled) { background: #fff; }
+html[data-theme="dark"] .toast { background: #2b3a4b; color: #f0f4fb; border-color: #536477; box-shadow: 0 15px 35px #0008; }
+html[data-theme="dark"] .toast.error { background: #65383b; border-color: #ab646c; }
+
+/* Light mode remains the original clean workbench, using its own variables. */
+html[data-theme="light"] { color-scheme: light; }
