@@ -1,3 +1,11 @@
+## T02 Studio v0.2.0 · More label tools
+
+- Five additional component tools: **Barcode**, **Address**, **Date/time**, **Shape** and **Border**, alongside the existing text, image, PDF, QR and label designer.
+- Code 128 and EAN-13 are generated locally with checksums. Retail product codes display optional numbers below the barcode.
+- Seven editable monochrome shapes with independent stroke thickness, filled/outline mode, placement, layering, rotation and opacity.
+- Addresses and date/time stamps become ordinary editable text layers. Date/time values are fixed when inserted.
+- Refreshed GitHub description clarifies that T02 Studio is an independent, free and open-source visual editor for the Phomemo T02.
+
 ## Windows standalone download
 
 Download **T02-Studio.exe** (Windows x64). No Python installation or manual build is required. Double-click to start a local server and open the English editor in your default browser. Keep the console window open while using the editor; close it to stop the server.

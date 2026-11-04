@@ -18,6 +18,11 @@
         <button class="tool-tab" data-tool="image" type="button"><span>▧</span>Image</button>
         <button class="tool-tab" data-tool="pdf" type="button"><span>▤</span>PDF</button>
         <button class="tool-tab" data-tool="qr" type="button"><span>▦</span>QR</button>
+        <button class="tool-tab" data-tool="barcode" type="button"><span>▥</span>Barcode</button>
+        <button class="tool-tab" data-tool="address" type="button"><span>⌖</span>Address</button>
+        <button class="tool-tab" data-tool="datetime" type="button"><span>◷</span>Date / time</button>
+        <button class="tool-tab" data-tool="shape" type="button"><span>◇</span>Shape</button>
+        <button class="tool-tab" data-tool="border" type="button"><span>▣</span>Border</button>
         <button class="tool-tab label-entry" data-tool="label" type="button"><span>▣</span>Labels</button>
       </nav>
 
@@ -57,6 +62,43 @@
         <label for="qr-value">QR content</label><textarea id="qr-value" rows="4" placeholder="https://...">https://example.com</textarea>
         <label for="qr-caption" class="gap-top">Caption</label><input id="qr-caption" type="text" maxlength="90" placeholder="e.g. Gift label">
         <button class="add-button" id="add-qr" type="button">+ Add QR</button>
+      </div>
+
+      <div class="tool-panel hidden" data-panel="barcode">
+        <h2>Barcode</h2><p class="panel-description">Scanner-readable codes for inventory and price tags.</p>
+        <label for="barcode-type">Format</label><select id="barcode-type"><option value="code128">Code 128</option><option value="ean13">EAN-13</option></select>
+        <label for="barcode-value" class="gap-top">Data</label><input id="barcode-value" type="text" maxlength="36" value="4006381333931">
+        <label class="check-row"><input type="checkbox" id="barcode-caption" checked> Show numbers</label>
+        <p class="label-note">EAN-13 accepts 12 or 13 digits. Verify scanning on printed paper.</p>
+        <button id="add-barcode" class="add-button" type="button">+ Add barcode</button>
+      </div>
+
+      <div class="tool-panel hidden" data-panel="address">
+        <h2>Address</h2><p class="panel-description">An editable multiline address, no map or online lookup.</p>
+        <label for="address-value">Recipient and address</label><textarea id="address-value" rows="5" placeholder="Recipient&#10;Street and number&#10;City, postal code"></textarea>
+        <button id="add-address" class="add-button" type="button">+ Add address</button>
+      </div>
+
+      <div class="tool-panel hidden" data-panel="datetime">
+        <h2>Date &amp; time</h2><p class="panel-description">Insert a timestamp snapshot from your computer.</p>
+        <label for="datetime-format">Format</label><select id="datetime-format"><option value="datetime">Date &amp; time</option><option value="date">Date only</option><option value="time">Time only</option><option value="long">Long date</option></select>
+        <label for="datetime-prefix" class="gap-top">Prefix (optional)</label><input id="datetime-prefix" type="text" maxlength="45" placeholder="Printed on:">
+        <button id="add-datetime" class="add-button" type="button">+ Insert date / time</button>
+      </div>
+
+      <div class="tool-panel hidden" data-panel="shape">
+        <h2>Shape</h2><p class="panel-description">Add movable monochrome shapes.</p>
+        <label for="shape-kind">Type</label><select id="shape-kind"><option value="rectangle">Rectangle</option><option value="rounded">Rounded rectangle</option><option value="ellipse">Ellipse</option><option value="line">Line</option><option value="arrow">Arrow</option><option value="diamond">Diamond</option><option value="star">Star</option></select>
+        <label class="check-row"><input id="shape-filled" type="checkbox"> Filled</label>
+        <div class="thickness-control"><div class="thickness-heading"><label for="shape-width">Line width</label><output id="shape-width-value">3 px</output></div><input type="range" id="shape-width" min="1" max="7" step="0.5" value="3"></div>
+        <button id="add-shape" class="add-button" type="button">+ Add shape layer</button>
+      </div>
+
+      <div class="tool-panel hidden" data-panel="border">
+        <h2>Border</h2><p class="panel-description">Add and stack independent frame layers.</p>
+        <label for="border-style">Style</label><select id="border-style"><option value="rounded">Rounded</option><option value="double">Double</option><option value="dashed">Stitched</option><option value="corners">Corners</option><option value="solid">Classic</option><option value="dotted">Dotted</option><option value="scallop">Scalloped</option><option value="ticket">Ticket</option><option value="deco">Art Deco</option><option value="wavy">Wavy</option></select>
+        <div class="thickness-control"><div class="thickness-heading"><label for="border-width">Line width</label><output id="border-width-value">3 px</output></div><input type="range" id="border-width" min="1" max="7" step="0.5" value="3"></div>
+        <button id="add-border" class="add-button" type="button">+ Add border layer</button>
       </div>
 
       <div class="tool-panel hidden" data-panel="label">

@@ -153,3 +153,47 @@ def render_qr(value: str, caption: str = "") -> Image.Image:
         canvas.paste(label, (0, 318))
     return canvas
 
+
+def render_barcode(value: str, symbology: str = "code128", show_text: bool = True) -> Image.Image:
+    """Generate a real, check-summed, scanner-readable barcode on a white paper strip."""
+    from barcode import Code128, EAN13
+    from barcode.writer import ImageWriter
+
+    value = value.strip()
+    if symbology == "code128":
+        if not 1 <= len(value) <= 36 or any(not 32 <= ord(char) <= 126 for char in value):
+            raise ValueError("Code 128 needs 1–36 printable ASCII characters")
+        barcode = Code128(value, writer=ImageWriter())
+    elif symbology == "ean13":
+        if not value.isascii() or not value.isdigit() or len(value) not in (12, 13):
+            raise ValueError("EAN-13 needs 12 or 13 digits")
+        digits = value[:12]
+        weighted = sum(int(digit) * (1 if index % 2 == 0 else 3)
+                       for index, digit in enumerate(digits))
+        check = str((10 - weighted % 10) % 10)
+        if len(value) == 13 and value[-1] != check:
+            raise ValueError(f"Invalid EAN-13 check digit; expected {check}")
+        barcode = EAN13(digits, writer=ImageWriter())
+    else:
+        raise ValueError("Choose Code 128 or EAN-13")
+
+    image = barcode.render(writer_options={
+        "module_width": 0.34, "module_height": 15, "quiet_zone": 2.5,
+        "font_size": 0, "write_text": False, "dpi": 203,
+        "background": "white", "foreground": "black",
+    }).convert("L")
+    # Nearest-neighbor scaling protects vertical bar edges from gray antialiasing.
+    if image.width > 352:
+        image = image.resize((352, image.height), Image.Resampling.NEAREST)
+    image = image.point(lambda pixel: 0 if pixel < 128 else 255, mode="1")
+    caption = barcode.get_fullcode() if show_text else ""
+    label = render_text(caption, font_size=19, padding=8, align="center") if caption else None
+    height = image.height + (label.height + 4 if label else 0) + 16
+    if height > MAX_HEIGHT:
+        raise ValueError("Barcode is too tall")
+    canvas = Image.new("1", (PRINT_WIDTH, height), 1)
+    canvas.paste(image, ((PRINT_WIDTH - image.width) // 2, 8))
+    if label:
+        canvas.paste(label, (0, image.height + 12))
+    return canvas
+

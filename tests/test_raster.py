@@ -7,7 +7,7 @@ from PIL import Image
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
-from t02studio.raster import render_qr, render_text, render_upload
+from t02studio.raster import render_barcode, render_qr, render_text, render_upload
 
 
 class RasterTests(unittest.TestCase):
@@ -76,6 +76,20 @@ class RasterTests(unittest.TestCase):
     def test_blank_qr_content_is_rejected(self):
         with self.assertRaisesRegex(ValueError, "QR"):
             render_qr("")
+
+    def test_code128_and_ean13_barcode_are_monochrome(self):
+        for name, value in (("code128", "T02-2026"), ("ean13", "4006381333931")):
+            with self.subTest(name=name):
+                image = render_barcode(value, name)
+                self.assertEqual(384, image.width)
+                self.assertGreater(image.height, 90)
+                self.assertEqual((0, 255), image.convert("L").getextrema())
+
+    def test_invalid_ean13_checksum_and_code128_controls_are_rejected(self):
+        with self.assertRaisesRegex(ValueError, "check digit"):
+            render_barcode("4006381333932", "ean13")
+        with self.assertRaisesRegex(ValueError, "printable ASCII"):
+            render_barcode("Hello\nWorld", "code128")
 
 
 if __name__ == "__main__":

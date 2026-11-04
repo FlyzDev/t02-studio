@@ -16,7 +16,7 @@ from werkzeug.exceptions import RequestEntityTooLarge
 from .discovery import available_ports
 from .pdf import render_pdf_segments
 from .printer import PrinterBusy, PrinterError, PrinterUnavailable, print_image
-from .raster import render_qr, render_text, render_upload
+from .raster import render_barcode, render_qr, render_text, render_upload
 
 
 def _number(key: str, default: float, cast=float):
@@ -72,6 +72,10 @@ def _render_request():
         return segments[index], index, len(segments)
     if kind == "qr":
         return render_qr(request.form.get("qr_value", ""), request.form.get("caption", "")), 0, 1
+    if kind == "barcode":
+        return render_barcode(request.form.get("barcode_value", ""),
+                              request.form.get("barcode_type", "code128"),
+                              request.form.get("barcode_caption", "true") == "true"), 0, 1
     raise ValueError("Unknown content type")
 
 

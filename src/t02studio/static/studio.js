@@ -1,7 +1,7 @@
 "use strict";
 
 const $ = (id) => document.getElementById(id);
-const { PAPER_WIDTH, MAX_HEIGHT, LABEL_SIZES, LABEL_FRAMES, FRAME_NAMES, FONT_STACKS,
+const { PAPER_WIDTH, MAX_HEIGHT, LABEL_SIZES, LABEL_FRAMES, FRAME_NAMES, SHAPE_NAMES, FONT_STACKS,
   mmToPx, pxToMm, normalizeOpacity, normalizeFrameWidth, normalizeTextThickness,
   flowLayout, clampBox, rotateBox } = T02StudioCore;
 const canvas = $("composition-canvas");
@@ -64,7 +64,7 @@ function restoreData(data) {
   if (!data || data.version !== 2 || !Array.isArray(data.items) || data.items.length > MAX_ITEMS)
     throw Error("Choose a valid T02 Studio project file");
   const items = data.items.map(item => {
-    if (!["text", "image", "frame"].includes(item.type)) throw Error("Unsupported layer type");
+    if (!["text", "image", "frame", "shape"].includes(item.type)) throw Error("Unsupported layer type");
     const safe = { ...item, id: String(item.id || uid()), name: String(item.name || "Item").slice(0, 120),
       x: Number(item.x) || 0, y: Number(item.y) || 0, w: Number(item.w) || 100, h: Number(item.h) || 50,
       hidden: Boolean(item.hidden), opacity: normalizeOpacity(item.opacity),
@@ -72,6 +72,11 @@ function restoreData(data) {
     if (safe.type === "frame") {
       safe.frameStyle = LABEL_FRAMES.includes(safe.frameStyle) && safe.frameStyle !== "none" ? safe.frameStyle : "rounded";
       safe.frameWidth = normalizeFrameWidth(safe.frameWidth);
+    }
+    if (safe.type === "shape") {
+      safe.shapeKind = Object.hasOwn(SHAPE_NAMES, safe.shapeKind) ? safe.shapeKind : "rectangle";
+      safe.shapeWidth = normalizeFrameWidth(safe.shapeWidth);
+      safe.shapeFilled = Boolean(safe.shapeFilled);
     }
     if (safe.type === "image" && !/^data:image\/(png|jpeg|webp);base64,/i.test(safe.src || ""))
       throw Error("Unsupported image in project");
@@ -282,6 +287,50 @@ function drawLabelFrame(context, height) {
   drawFrame(context, work.labelFrame, { x: 11, y: 11, w: PAPER_WIDTH - 22, h: height - 22 }, work.labelFrameWidth);
 }
 
+function drawShape(context, item, box) {
+  const inset = Math.max(3, normalizeFrameWidth(item.shapeWidth));
+  const x = box.x + inset, y = box.y + inset;
+  const w = Math.max(1, box.w - 2 * inset), h = Math.max(1, box.h - 2 * inset);
+  context.save();
+  context.strokeStyle = "#000"; context.fillStyle = "#000";
+  context.lineWidth = normalizeFrameWidth(item.shapeWidth);
+  context.lineJoin = "round"; context.lineCap = "round";
+  const kind = item.shapeKind;
+  context.beginPath();
+  if (kind === "rectangle") context.rect(x, y, w, h);
+  else if (kind === "rounded") {
+    const r = Math.min(16, w / 4, h / 4);
+    context.moveTo(x + r, y); context.arcTo(x + w, y, x + w, y + h, r);
+    context.arcTo(x + w, y + h, x, y + h, r);
+    context.arcTo(x, y + h, x, y, r);
+    context.arcTo(x, y, x + w, y, r); context.closePath();
+  } else if (kind === "ellipse") context.ellipse(x + w / 2, y + h / 2, w / 2, h / 2, 0, 0, Math.PI * 2);
+  else if (kind === "diamond") {
+    context.moveTo(x + w / 2, y); context.lineTo(x + w, y + h / 2);
+    context.lineTo(x + w / 2, y + h); context.lineTo(x, y + h / 2); context.closePath();
+  } else if (kind === "star") {
+    for (let i = 0; i < 10; i++) {
+      const radius = i % 2 === 0 ? .5 : .23;
+      const angle = i * Math.PI / 5 - Math.PI / 2;
+      const px = x + w / 2 + Math.cos(angle) * w * radius;
+      const py = y + h / 2 + Math.sin(angle) * h * radius;
+      if (i === 0) context.moveTo(px, py); else context.lineTo(px, py);
+    }
+    context.closePath();
+  } else if (kind === "line" || kind === "arrow") {
+    const middle = y + h / 2;
+    context.moveTo(x, middle); context.lineTo(x + w, middle);
+    if (kind === "arrow") {
+      const head = Math.min(20, w / 4, h / 2);
+      context.moveTo(x + w - head, middle - head / 2);
+      context.lineTo(x + w, middle); context.lineTo(x + w - head, middle + head / 2);
+    }
+  }
+  if (item.shapeFilled && !["line", "arrow"].includes(kind)) context.fill();
+  else context.stroke();
+  context.restore();
+}
+
 function drawArtwork(context, geometry) {
   context.fillStyle = "#fff";
   context.fillRect(0, 0, PAPER_WIDTH, geometry.height);
@@ -298,6 +347,7 @@ function drawArtwork(context, geometry) {
     context.globalAlpha = normalizeOpacity(item.opacity);
     if (item.type === "text") paintText(context, item, local);
     else if (item.type === "frame") drawFrame(context, item.frameStyle, local, item.frameWidth);
+    else if (item.type === "shape") drawShape(context, item, local);
     else if (item.type === "image") {
       const image = imageFor(item.src);
       if (image.complete && image.naturalWidth) {
@@ -375,10 +425,10 @@ function updateLayers() {
     row.className = "layer-item" + (work.selectedId === item.id ? " active" : "");
     row.title = "Select layer";
     const symbol = document.createElement("span"); symbol.className = "layer-symbol";
-    symbol.textContent = item.type === "text" ? "T" : item.type === "frame" ? "▣" : "▧";
+    symbol.textContent = ({ text: "T", frame: "▣", shape: "◇", image: "▧" })[item.type];
     const names = document.createElement("div"); names.className = "layer-text";
     const name = document.createElement("strong"); name.textContent = item.name;
-    const meta = document.createElement("small"); meta.textContent = item.type === "text" ? "Text" : item.type === "frame" ? "Frame" : "Image";
+    const meta = document.createElement("small"); meta.textContent = ({ text: "Text", frame: "Border", shape: "Shape", image: "Image" })[item.type];
     names.append(name, meta);
     const visibility = document.createElement("button"); visibility.type = "button";
     visibility.className = "layer-visibility"; visibility.textContent = item.hidden ? "◌" : "◉";
@@ -418,6 +468,13 @@ function updateProperties(geometry) {
   $("text-properties").classList.toggle("hidden", item.type !== "text");
   $("image-properties").classList.toggle("hidden", item.type !== "image");
   $("frame-properties").classList.toggle("hidden", item.type !== "frame");
+  $("shape-properties").classList.toggle("hidden", item.type !== "shape");
+  if (item.type === "shape") {
+    $("prop-shape-kind").value = item.shapeKind;
+    $("prop-shape-filled").checked = Boolean(item.shapeFilled);
+    $("prop-shape-width").value = normalizeFrameWidth(item.shapeWidth);
+    $("prop-shape-width-value").textContent = `${normalizeFrameWidth(item.shapeWidth)} px`;
+  }
   if (item.type === "frame") {
     $("prop-frame-style").value = item.frameStyle;
     $("prop-frame-width").value = normalizeFrameWidth(item.frameWidth);
@@ -468,6 +525,37 @@ function addText(text, atPointer = false) {
   if (atPointer) work.pointer = atPointer;
   addItem(item, atPointer || null);
   return item;
+}
+
+function addPresetText(text, name, { size = 22, align = "left", bold = false } = {}) {
+  if (!text.trim()) throw Error("Enter text first");
+  const item = { type: "text", name, text, fontSize: size, fontFamily: "modern",
+    align, bold, inkThickness: 4, w: work.mode === "free" ? 320 : 352, h: 50 };
+  item.h = requiredTextHeight(item);
+  addItem(item);
+}
+
+function formatDateTime(kind) {
+  const date = new Date();
+  const formats = {
+    date: { year: "numeric", month: "2-digit", day: "2-digit" },
+    datetime: { year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" },
+    long: { year: "numeric", month: "long", day: "numeric", weekday: "long" },
+    time: { hour: "2-digit", minute: "2-digit" }
+  };
+  return new Intl.DateTimeFormat(undefined, formats[kind] || formats.datetime).format(date);
+}
+
+function addShape() {
+  const kind = $("shape-kind").value;
+  if (!Object.hasOwn(SHAPE_NAMES, kind)) throw Error("Choose a shape");
+  if (work.mode !== "free") switchMode("free");
+  const isLine = kind === "line" || kind === "arrow";
+  const item = { type: "shape", name: SHAPE_NAMES[kind], shapeKind: kind,
+    shapeWidth: normalizeFrameWidth($("shape-width").value),
+    shapeFilled: $("shape-filled").checked, rotation: 0, opacity: 1,
+    w: isLine ? 250 : 180, h: isLine ? 45 : 115 };
+  addItem(item, { x: 60, y: Math.min(50, Math.max(0, work.pageHeight - item.h)) });
 }
 
 function syncLabelControls() {
@@ -550,6 +638,25 @@ function addFrameLayer() {
     rotation: 0, opacity: 1, w: PAPER_WIDTH - 54, h: height };
   addItem(item, { x: 27, y: Math.round((work.pageHeight - height) / 2) });
   toast("Frame layer added. Move its edge or edit its style in Layers.");
+}
+
+function setupShapeProperties() {
+  const panel = document.createElement("div");
+  panel.id = "shape-properties";
+  panel.className = "shape-properties hidden";
+  panel.innerHTML = `
+    <label for="prop-shape-kind">Shape</label>
+    <select id="prop-shape-kind">
+      <option value="rectangle">Rectangle</option><option value="rounded">Rounded rectangle</option>
+      <option value="ellipse">Ellipse</option><option value="line">Line</option>
+      <option value="arrow">Arrow</option><option value="diamond">Diamond</option>
+      <option value="star">Star</option>
+    </select>
+    <label class="check-row"><input type="checkbox" id="prop-shape-filled"> Filled</label>
+    <div class="thickness-control"><div class="thickness-heading">
+      <label for="prop-shape-width">Line width</label><output id="prop-shape-width-value">3 px</output>
+    </div><input id="prop-shape-width" type="range" min="1" max="7" step="0.5" value="3"></div>`;
+  $("frame-properties").after(panel);
 }
 
 function createLabel() {
@@ -678,7 +785,7 @@ function hitTest(position) {
     if (position.x < box.x || position.x > box.x + box.w ||
         position.y < box.y || position.y > box.y + box.h) return false;
     const item = work.items.find(layer => layer.id === box.id);
-    if (item?.type !== "frame") return true;
+    if (item?.type !== "frame" && !(item?.type === "shape" && !item.shapeFilled && !["line", "arrow"].includes(item.shapeKind))) return true;
     // A transparent frame must not steal clicks from images and text inside it.
     const edge = 15;
     return position.x - box.x < edge || box.x + box.w - position.x < edge ||
@@ -863,6 +970,21 @@ async function addQr() {
     w: width, h: Math.round(data.height * width / data.width), fit: "contain" });
 }
 
+async function addBarcode() {
+  const value = $("barcode-value").value.trim();
+  if (!value) throw Error("Enter barcode data first");
+  const symbology = $("barcode-type").value;
+  const body = new FormData();
+  body.append("kind", "barcode"); body.append("barcode_value", value);
+  body.append("barcode_type", symbology);
+  body.append("barcode_caption", String($("barcode-caption").checked));
+  const data = await fromServerPreview(body);
+  const width = work.mode === "free" ? 340 : 352;
+  addItem({ type: "image", name: `${symbology === "ean13" ? "EAN-13" : "Code 128"} · ${value.slice(0, 22)}`,
+    src: data.src, w: width, h: Math.round(data.height * width / data.width), fit: "contain" });
+  toast("Barcode added. Keep bars wide enough for reliable scanning on paper.");
+}
+
 function updatePdfLabel() {
   $("pdf-part-label").textContent = `Segment ${work.pdfSegment + 1} / ${work.pdfTotal || "?"}`;
   $("pdf-prev").disabled = work.pdfSegment <= 0;
@@ -1041,6 +1163,33 @@ function bind() {
   $("pdf-next").addEventListener("click", () => { work.pdfSegment = Math.min(work.pdfTotal - 1, work.pdfSegment + 1); updatePdfLabel(); });
   $("add-pdf").addEventListener("click", () => addPdf().catch(error => toast(error.message, true)));
   $("add-qr").addEventListener("click", () => addQr().catch(error => toast(error.message, true)));
+  $("add-barcode").addEventListener("click", () => addBarcode().catch(error => toast(error.message, true)));
+  $("add-address").addEventListener("click", () => {
+    const address = $("address-value").value.trim();
+    try { addPresetText(address, "Address · " + address.split("\n")[0].slice(0, 25), { size: 22 }); }
+    catch (error) { toast(error.message, true); }
+  });
+  $("add-datetime").addEventListener("click", () => {
+    try {
+      const prefix = $("datetime-prefix").value.trim();
+      addPresetText(`${prefix}${prefix ? " " : ""}${formatDateTime($("datetime-format").value)}`,
+        "Date / time", { size: 22 });
+    } catch (error) { toast(error.message, true); }
+  });
+  $("shape-width").addEventListener("input", () => {
+    $("shape-width-value").textContent = `${normalizeFrameWidth($("shape-width").value)} px`;
+  });
+  $("add-shape").addEventListener("click", () => { try { addShape(); } catch (error) { toast(error.message, true); } });
+  $("border-width").addEventListener("input", () => {
+    $("border-width-value").textContent = `${normalizeFrameWidth($("border-width").value)} px`;
+  });
+  $("add-border").addEventListener("click", () => {
+    try {
+      work.labelFrameChoice = $("border-style").value;
+      work.labelFrameWidth = normalizeFrameWidth($("border-width").value);
+      syncLabelControls(); addFrameLayer();
+    } catch (error) { toast(error.message, true); }
+  });
   for (const tool of ["select", "text", "image"]) $("free-" + tool).addEventListener("click", () => setFreeTool(tool));
   for (const id of ["page-height", "page-height-range"]) $(id).addEventListener("change", () => {
     const mm = Math.max(20, Math.min(999, Number($(id).value) || 150));
@@ -1105,6 +1254,7 @@ function bind() {
   }
   bindSelectedThickness("prop-ink-thickness", "inkThickness", normalizeTextThickness);
   bindSelectedThickness("prop-frame-width", "frameWidth", normalizeFrameWidth);
+  bindSelectedThickness("prop-shape-width", "shapeWidth", normalizeFrameWidth);
   let fontSizeEditingId = null;
   const fontSlider = $("prop-font-size-range");
   fontSlider.addEventListener("input", () => {
@@ -1137,6 +1287,15 @@ function bind() {
     const item = selected(), style = $("prop-frame-style").value;
     if (!item || item.type !== "frame" || !LABEL_FRAMES.includes(style) || style === "none") return;
     checkpoint(); item.frameStyle = style; item.name = `${FRAME_NAMES[style]} frame`;
+    render(); scheduleDraft();
+  });
+  for (const key of ["kind", "filled"]) $("prop-shape-" + key).addEventListener("change", () => {
+    const item = selected(); if (!item || item.type !== "shape") return;
+    checkpoint();
+    if (key === "kind") {
+      item.shapeKind = $("prop-shape-kind").value;
+      item.name = SHAPE_NAMES[item.shapeKind] || "Shape";
+    } else item.shapeFilled = $("prop-shape-filled").checked;
     render(); scheduleDraft();
   });
   for (const key of ["font-size", "font-family", "align", "bold"]) $("prop-" + key).addEventListener("change", () => {
@@ -1268,6 +1427,7 @@ function bind() {
 }
 
 function init() {
+  setupShapeProperties();
   bind();
   try {
     const saved = localStorage.getItem("t02-composer-project");

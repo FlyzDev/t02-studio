@@ -13,13 +13,18 @@
   <div class="studio-shell">
     <aside class="tool-sidebar">
       <div class="studio-brand"><div class="brand-monogram">t<span>02</span></div><div class="brand-name"><strong>T02 Studio</strong><small>Thermal print workspace</small></div></div>
-      <div class="side-heading"><span>ADD COMPONENT</span><span class="hint-key">05 tools</span></div>
+      <div class="side-heading"><span>ADD COMPONENT</span><span class="hint-key">10 tools</span></div>
       <nav class="tool-tabs" aria-label="Content tools">
         <button class="tool-tab active" type="button" data-tool="text"><span class="tab-number">01</span>Text</button>
         <button class="tool-tab" type="button" data-tool="image"><span class="tab-number">02</span>Image</button>
         <button class="tool-tab" type="button" data-tool="pdf"><span class="tab-number">03</span>PDF</button>
         <button class="tool-tab" type="button" data-tool="qr"><span class="tab-number">04</span>QR</button>
-        <button class="tool-tab label-entry" type="button" data-tool="label"><span class="tab-number">05</span>Label designer <span class="entry-hint">New</span></button>
+        <button class="tool-tab" type="button" data-tool="barcode"><span class="tab-number">05</span>Barcode</button>
+        <button class="tool-tab" type="button" data-tool="address"><span class="tab-number">06</span>Address</button>
+        <button class="tool-tab" type="button" data-tool="datetime"><span class="tab-number">07</span>Date / time</button>
+        <button class="tool-tab" type="button" data-tool="shape"><span class="tab-number">08</span>Shape</button>
+        <button class="tool-tab" type="button" data-tool="border"><span class="tab-number">09</span>Border</button>
+        <button class="tool-tab label-entry" type="button" data-tool="label"><span class="tab-number">10</span>Label designer</button>
       </nav>
 
       <section class="tool-panel" data-panel="text">
@@ -58,6 +63,46 @@
         <label for="qr-value">Code content</label><textarea id="qr-value" rows="4" placeholder="https://..."></textarea>
         <label for="qr-caption" class="gap-top">Caption <span class="quiet">(optional)</span></label><input id="qr-caption" type="text" maxlength="90" placeholder="Description">
         <button id="add-qr" class="add-button" type="button">Add QR code <span>+</span></button>
+      </section>
+
+      <section class="tool-panel hidden" data-panel="barcode">
+        <div class="panel-intro"><h2>Barcode</h2><p>Real, check-summed barcodes for price tags, inventory and labels.</p></div>
+        <label for="barcode-type">Barcode format</label><select id="barcode-type"><option value="code128">Code 128 · text / product IDs</option><option value="ean13">EAN-13 · retail products</option></select>
+        <label for="barcode-value" class="gap-top">Data</label><input id="barcode-value" type="text" maxlength="36" value="4006381333931" placeholder="Enter a product ID">
+        <label class="check-row"><input type="checkbox" id="barcode-caption" checked> Show numbers below bars</label>
+        <p class="helper-line">EAN-13 requires 12 or 13 digits. Code 128 accepts printable ASCII. Check scanning after printing.</p>
+        <button id="add-barcode" class="add-button" type="button">Add barcode <span>+</span></button>
+      </section>
+
+      <section class="tool-panel hidden" data-panel="address">
+        <div class="panel-intro"><h2>Address</h2><p>Quickly add a multi-line recipient or shipping address.</p></div>
+        <label for="address-value">Address text</label><textarea id="address-value" rows="5" placeholder="Recipient name&#10;Street and number&#10;City, postal code"></textarea>
+        <p class="helper-line">Inserts editable text, not an external map link. No location is shared.</p>
+        <button id="add-address" class="add-button" type="button">Add address <span>+</span></button>
+      </section>
+
+      <section class="tool-panel hidden" data-panel="datetime">
+        <div class="panel-intro"><h2>Date &amp; time</h2><p>Insert the current date or time in your computer's timezone.</p></div>
+        <label for="datetime-format">Format</label><select id="datetime-format"><option value="datetime">Date and time</option><option value="date">Date only</option><option value="time">Time only</option><option value="long">Long date</option></select>
+        <label for="datetime-prefix" class="gap-top">Prefix (optional)</label><input id="datetime-prefix" type="text" maxlength="45" placeholder="Printed on:">
+        <p class="helper-line">A snapshot at insertion time. Double-click to edit the result.</p>
+        <button id="add-datetime" class="add-button" type="button">Insert date / time <span>+</span></button>
+      </section>
+
+      <section class="tool-panel hidden" data-panel="shape">
+        <div class="panel-intro"><h2>Shape</h2><p>Decorate, separate and highlight sections of a label.</p></div>
+        <label for="shape-kind">Shape</label><select id="shape-kind"><option value="rectangle">Rectangle</option><option value="rounded">Rounded rectangle</option><option value="ellipse">Ellipse</option><option value="line">Line</option><option value="arrow">Arrow</option><option value="diamond">Diamond</option><option value="star">Star</option></select>
+        <label class="check-row"><input id="shape-filled" type="checkbox"> Fill shape with black ink</label>
+        <div class="thickness-control"><div class="thickness-heading"><label for="shape-width">Line width</label><output id="shape-width-value">3 px</output></div><input type="range" id="shape-width" min="1" max="7" step="0.5" value="3"></div>
+        <button id="add-shape" class="add-button" type="button">Add shape layer <span>+</span></button>
+      </section>
+
+      <section class="tool-panel hidden" data-panel="border">
+        <div class="panel-intro"><h2>Border</h2><p>Add multiple independent, resizable frames to any design.</p></div>
+        <label for="border-style">Border style</label><select id="border-style"><option value="rounded">Rounded</option><option value="double">Double</option><option value="dashed">Stitched</option><option value="corners">Corners</option><option value="solid">Classic</option><option value="dotted">Dotted</option><option value="scallop">Scalloped</option><option value="ticket">Ticket</option><option value="deco">Art Deco</option><option value="wavy">Wavy</option></select>
+        <div class="thickness-control"><div class="thickness-heading"><label for="border-width">Line width</label><output id="border-width-value">3 px</output></div><input type="range" id="border-width" min="1" max="7" step="0.5" value="3"></div>
+        <p class="helper-line">Each border becomes its own layer with position, size and opacity controls.</p>
+        <button id="add-border" class="add-button" type="button">Add border layer <span>+</span></button>
       </section>
 
       <section class="tool-panel hidden" data-panel="label">

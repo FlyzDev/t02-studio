@@ -2,7 +2,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const { mmToPx, pxToMm, flowLayout, clampBox, rotateBox, PAPER_WIDTH, MAX_HEIGHT,
-  LABEL_SIZES, LABEL_FRAMES, FRAME_NAMES, FONT_STACKS, normalizeOpacity,
+  LABEL_SIZES, LABEL_FRAMES, FRAME_NAMES, SHAPE_NAMES, FONT_STACKS, normalizeOpacity,
   normalizeFrameWidth, normalizeTextThickness } = require('../src/t02studio/static/studio-core.js');
 
 assert.equal(PAPER_WIDTH, 384);
@@ -31,6 +31,7 @@ assert.equal(normalizeTextThickness(4.4), 4);
 assert.equal(normalizeTextThickness(-3), 1);
 assert.equal(normalizeTextThickness(20), 5);
 assert.equal(Object.keys(FONT_STACKS).length, 6);
+assert.deepEqual(Object.keys(SHAPE_NAMES), ['rectangle', 'rounded', 'ellipse', 'line', 'arrow', 'diamond', 'star']);
 
 const blocks = [
   { id: 'a', w: 352, h: 80 },
@@ -61,7 +62,9 @@ assert.equal(rotatedFlow.blocks[0].y, 16);
 const source = fs.readFileSync(path.join(__dirname, '../src/t02studio/static/studio.js'), 'utf8');
 const markup = fs.readFileSync(path.join(__dirname, '../src/t02studio/templates/studio.html'), 'utf8');
 for (const match of source.matchAll(/\$\("([\w-]+)"\)/g)) {
-  assert.ok(markup.includes(`id="${match[1]}"`), `Missing element in composer: ${match[1]}`);
+  assert.ok(markup.includes(`id="${match[1]}"`) || source.includes(`id="${match[1]}"`) ||
+    source.includes(`.id = "${match[1]}"`),
+    `Missing element in composer or dynamically installed property controls: ${match[1]}`);
 }
 assert.ok(markup.includes('data-mode="free"'));
 for (const page of ['studio.html', 'studio_alt.html']) {
@@ -82,11 +85,21 @@ for (const page of ['studio.html', 'studio_alt.html']) {
   }
   for (const direction of ['left', 'center', 'right'])
     assert.ok(html.includes(`data-property-align="${direction}"`));
+  for (const tool of ['barcode', 'address', 'datetime', 'shape', 'border']) {
+    assert.ok(html.includes(`data-tool="${tool}"`), `${page}: missing ${tool} tab`);
+    assert.ok(html.includes(`data-panel="${tool}"`), `${page}: missing ${tool} panel`);
+  }
+  for (const id of ['add-barcode', 'barcode-value', 'barcode-type', 'barcode-caption',
+    'add-address', 'address-value', 'add-datetime', 'datetime-format', 'datetime-prefix',
+    'add-shape', 'shape-kind', 'shape-width', 'shape-filled', 'add-border', 'border-style', 'border-width']) {
+    assert.ok(html.includes(`id="${id}"`), `${page}: missing ${id}`);
+  }
 }
 assert.ok(source.includes('createUuidV4()'));
 assert.ok(source.includes('clipboardData'));
 assert.ok(source.includes('context.globalAlpha = normalizeOpacity(item.opacity)'));
 assert.ok(source.includes('item.type === "frame"'));
+assert.ok(source.includes('item.type === "shape"'));
 assert.ok(source.includes('context.strokeText(line'));
 assert.ok(source.includes('toast("All layers cleared. Use Undo to restore your design.")'));
 console.log('studio core tests OK');

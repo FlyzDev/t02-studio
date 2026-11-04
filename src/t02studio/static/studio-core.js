@@ -16,6 +16,8 @@ const T02StudioCore = (() => {
   const FRAME_NAMES = Object.freeze({ none: "None", rounded: "Rounded", double: "Double",
     dashed: "Stitched", corners: "Corners", solid: "Classic", dotted: "Dotted",
     scallop: "Scalloped", ticket: "Ticket", deco: "Art Deco", wavy: "Wavy" });
+  const SHAPE_NAMES = Object.freeze({ rectangle: "Rectangle", rounded: "Rounded rectangle",
+    ellipse: "Ellipse", line: "Line", arrow: "Arrow", diamond: "Diamond", star: "Star" });
   // These common desktop fonts work offline; no external font CDN is required.
   const FONT_STACKS = Object.freeze({
     modern: '"Segoe UI", Arial, sans-serif',
@@ -82,7 +84,7 @@ const T02StudioCore = (() => {
     };
   }
 
-  return { PAPER_WIDTH, MAX_HEIGHT, DPI, LABEL_SIZES, LABEL_FRAMES, FRAME_NAMES, FONT_STACKS,
+  return { PAPER_WIDTH, MAX_HEIGHT, DPI, LABEL_SIZES, LABEL_FRAMES, FRAME_NAMES, SHAPE_NAMES, FONT_STACKS,
     mmToPx, pxToMm, normalizeOpacity, normalizeFrameWidth, normalizeTextThickness,
     flowLayout, clampBox, rotateBox };
 })();

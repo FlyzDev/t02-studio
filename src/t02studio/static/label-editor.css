@@ -71,6 +71,10 @@
 .action-group button.clear-all-button { color: #bb6868; border-color: #9a58583b; }
 .action-group button.clear-all-button:hover:not(:disabled) { background: #982f2f22; color: #d36d6d; }
 .frame-properties { margin: 10px 0; }
+.shape-properties { margin: 10px 0; padding-top: 12px; border-top: 1px solid #d8e0e9; }
+.shape-properties label { display: block; font-size: 11px; margin-bottom: 6px; }
+.shape-properties select { width: 100%; min-height: 35px; padding: 6px; border: 1px solid #dce3eb; border-radius: 6px; background: #fff; color: #3e4a5b; }
+.shape-properties .check-row { margin: 12px 0 !important; display: flex; align-items: center; }
 .frame-properties label { display: block; font-size: 11px; margin-bottom: 6px; }
 .frame-properties select { width: 100%; min-height: 35px; padding: 6px; border: 1px solid #dce3eb; border-radius: 6px; background: #fff; color: #3e4a5b; }
 .tool-panel .label-note, .label-note { font-size: 10px; color: #8d99a8; line-height: 1.65; margin-top: 13px; }
@@ -101,6 +105,8 @@ html[data-theme="dark"] .alignment-buttons button:not(.active):hover { backgroun
 html[data-theme="dark"] .action-group button.clear-all-button { color: #e99b9b; border-color: #8f565660; }
 html[data-theme="dark"] .action-group button.clear-all-button:hover:not(:disabled) { background: #8e393934; color: #ffc1c1; }
 html[data-theme="dark"] .frame-properties select { background: #11161d; color: #e6e9ef; border-color: #3a4350; }
+html[data-theme="dark"] .shape-properties { border-color: #303945; }
+html[data-theme="dark"] .shape-properties select { background: #11161d; color: #e6e9ef; border-color: #3a4350; }
 html[data-theme="dark"] .typeface-property-label { color: #a9b5c6; }
 html[data-theme="dark"] .typeface-property-select { background: #11161d; color: #e6e9ef; border-color: #3a4350; }
 html[data-theme="dark"] .label-note { color: #94a4b7; }

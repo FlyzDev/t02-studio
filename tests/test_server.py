@@ -38,6 +38,17 @@ class ServerTests(unittest.TestCase):
         self.assertEqual("COM6", response.json["port"])
         self.assertEqual(404, self.client.post("/api/login", json={"password": "anything"}).status_code)
 
+    def test_barcode_preview_is_validated_and_does_not_print(self):
+        response = self.client.post("/api/preview", data={"kind": "barcode", "barcode_type": "ean13",
+                                                          "barcode_value": "4006381333931"})
+        self.assertEqual(200, response.status_code)
+        self.assertEqual("image/png", response.mimetype)
+        self.assertEqual(384, Image.open(io.BytesIO(response.data)).width)
+        self.assertEqual([], self.jobs)
+        invalid = self.client.post("/api/preview", data={"kind": "barcode", "barcode_type": "ean13",
+                                                         "barcode_value": "bad-data"})
+        self.assertEqual(400, invalid.status_code)
+
     def test_detected_ports_are_listed_without_touching_hardware(self):
         response = self.client.get("/api/printers")
         self.assertEqual(200, response.status_code)
@@ -81,6 +92,8 @@ class ServerTests(unittest.TestCase):
         self.assertIn(b'lang="en"', page.data)
         self.assertIn(b'id="printer-select"', page.data)
         self.assertIn(b'data-tool="label"', page.data)
+        self.assertIn(b'data-tool="barcode"', page.data)
+        self.assertIn(b'data-tool="shape"', page.data)
         self.assertIn(b'data-label-size="compact"', page.data)
         self.assertIn(b'id="label-font"', page.data)
         self.assertIn(b'id="add-frame"', page.data)

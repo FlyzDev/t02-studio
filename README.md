@@ -1,10 +1,12 @@
 # T02 Studio
 
-An open-source, self-hosted, browser-based receipt designer for the **Phomemo T02 Mini** thermal printer.
+**A free, open-source visual editor for Phomemo T02 thermal printers.** Design and print custom labels, stickers, images, barcodes, and more.
+
+T02 Studio is an independent community project and is **not affiliated with or endorsed by Phomemo**.
 
 **Windows users:** [Download the latest `T02-Studio.exe` from Releases](https://github.com/FlyzDev/t02-studio/releases/latest). No Python, terminal or manual build required. Double-click the EXE to open the editor, leave its console window open while printing, and close the window when finished. The Windows build is unsigned, so verify the published SHA256 checksum if SmartScreen warns. **Never run as Administrator.**
 
-T02 Studio combines text, images, PDF extracts and QR codes into one 384-dot-wide strip. Its free-layout editor supports dragging, resizing, 90° rotation, an adjustable paper edge, paste-to-add images, layers, project JSON and PNG export.
+T02 Studio combines text, images, PDF extracts, QR codes and real retail barcodes into one 384-dot-wide strip. Its free-layout editor supports dragging, resizing, 90° rotation, an adjustable paper edge, paste-to-add images, shapes, borders, layers, project JSON and PNG export.
 
 ## Preview
 
@@ -47,6 +49,25 @@ Open **Label designer** from the left sidebar to start with a ready-to-edit labe
 - Frames, stroke weights, text thickness, per-layer opacity, dimensions, and font choices persist in project JSON and are rendered through the same canvas path for on-screen preview, PNG, and print. Older version-2 projects without weight or opacity values load with safe new defaults.
 - The toolbar **Clear all** button asks for confirmation before removing every layer and the label outline, and the operation can be reversed with **Undo**. It does not delete saved JSON files.
 
+## Components
+
+The main editor includes ten component tools:
+
+| Tool | What it adds |
+| --- | --- |
+| Text | Free text with typography, alignment and variable ink thickness |
+| Image | Photos, logos and pasted pictures |
+| PDF | Rendered PDF segments |
+| QR | QR code with optional caption |
+| Barcode | Real **Code 128** or **EAN-13** barcode with optional printed numbers |
+| Address | Editable multiline address text, with no geolocation or online lookups |
+| Date / time | Current local date/time as editable text, captured when inserted |
+| Shape | Rectangle, rounded rectangle, ellipse, line, arrow, diamond or star, filled or outlined |
+| Border | Independently movable and stackable decorative frame layers |
+| Label designer | Three label size presets with typography and frame options |
+
+The new shapes inherit the same free-positioning, opacity, sizing, rotation, undo/redo, JSON persistence and raster export path as other layers. Barcodes are generated locally; verify real scanner performance on printed paper, especially with longer Code 128 values that may become too dense at 203 DPI. EAN-13 requires 12 digits (checksum calculated) or a valid 13-digit number (checksum verified).
+
 These are layout presets for **53 mm continuous-roll paper** with approximately 50 mm of artwork width. They are not calibration profiles for precut die-cut stickers or separate label media. Font appearance may vary if another computer does not have the same desktop fonts; exporting a PNG rasterizes the chosen appearance.
 
 ## Quick start (Windows)
@@ -87,7 +108,7 @@ If needed, create a **narrow Windows Firewall inbound rule** for only that PC's 
 
 ## Features
 
-- Compose a long strip from multiple blocks (text, image, PDF segment, QR).
+- Compose a long strip from multiple blocks (text, image, PDF segment, QR, Code 128, EAN-13, address, date/time, and vector-style shapes).
 - Discover paired Windows serial ports, identify likely T02 entries, and remember the selected outgoing COM port per browser. Supports multiple LAN clients selecting ports independently.
 - Flow and free-layout modes; clipboard image paste and drag/drop.
 - Label designer presets, stackable frame layers, 0–100% layer opacity, and typography controls, with no external font CDN requirement.
