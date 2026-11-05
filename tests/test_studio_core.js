@@ -202,9 +202,19 @@ for (const id of ['ps-rail-select', 'workspace-tool-drawer', 'workspace-drawer-c
   'ps-zoom', 'ps-quick-save', 'ps-printer-toggle', 'ps-length-control']) {
   assert.ok(workspace.includes(`id="${id}"`), `Missing new workspace control ${id}`);
 }
-for (const menu of ['File', 'Edit', 'View', 'Layer']) {
+for (const menu of ['File', 'Edit', 'View', 'Layer', 'About']) {
   assert.ok(workspace.includes(`<summary>${menu}</summary>`), `Missing workspace menu ${menu}`);
 }
+assert.ok(workspace.includes('<summary>Experimental <span'), 'Experimental menu must advertise beta features');
+for (const id of ['workspace-open-experimental', 'workspace-open-about', 'workspace-experimental-dialog',
+  'workspace-about-dialog', 'workspace-experimental-canvas', 'workspace-experimental-download']) {
+  assert.ok(workspace.includes(`id="${id}"`), `Missing experimental/credits control ${id}`);
+}
+for (const url of ['https://github.com/FlyzDev', 'https://github.com/FlyzDev/t02-studio', 'https://flyz.dev']) {
+  assert.ok(workspace.includes(url), `About must link ${url}`);
+}
+assert.ok(workspace.includes('/static/studio-experiments.js'), 'Experimental menu must load its behavior');
+assert.ok(workspaceCss.includes('.workspace-modal::backdrop'), 'Experiment and About should have accessible modal framing');
 assert.ok(workspace.includes('/static/studio-workspace.css'));
 assert.ok(workspace.includes('/static/studio-workspace.js'));
 assert.ok(!markup.includes('studio-workspace.css'), 'Legacy composer must remain unchanged');

@@ -24,6 +24,11 @@ protocol family and transport. The GS `v 0` raster encoder can now encode
 other byte-aligned widths, which we exercise using synthetic 576-dot fixtures.
 **An offline 576-dot test is not proof of compatibility with a 576-dot printer.**
 
+The editor's **Experimental → Printer width lab** is a safe way to inspect and
+download resampled 384-, 576- or 832-pixel designs. It does not modify source
+layers, calibrate media, invoke the print endpoint or identify new devices.
+It is a **raster preview experiment**, not a functional multi-printer mode.
+
 ## Implementation sequence
 
 1. **Capabilities and safety (first slice):** centralize device capabilities,

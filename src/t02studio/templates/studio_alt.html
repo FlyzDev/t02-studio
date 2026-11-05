@@ -32,6 +32,8 @@
         <details class="workspace-menu"><summary>Edit</summary><div class="workspace-menu-items"><button type="button" data-workspace-action="undo">Undo <kbd>Ctrl+Z</kbd></button><button type="button" data-workspace-action="redo">Redo <kbd>Ctrl+Y</kbd></button><button type="button" data-workspace-action="duplicate">Duplicate <kbd>Ctrl+D</kbd></button><button type="button" data-workspace-action="ps-select-all">Select all <kbd>Ctrl+A</kbd></button><button type="button" data-workspace-action="ps-deselect">Deselect <kbd>Esc</kbd></button></div></details>
         <details class="workspace-menu"><summary>View</summary><div class="workspace-menu-items"><button type="button" data-workspace-action="ps-free-mode">Free edit</button><button type="button" data-workspace-action="ps-flow-mode">Flow layout</button><button type="button" data-workspace-action="theme-toggle">Toggle light / dark</button><button type="button" data-workspace-action="fit-height">Fit paper to content</button></div></details>
         <details class="workspace-menu"><summary>Layer</summary><div class="workspace-menu-items"><button type="button" data-workspace-action="rotate-left">Rotate 90° left</button><button type="button" data-workspace-action="rotate-right">Rotate 90° right</button><button type="button" data-workspace-action="move-up">Bring forward</button><button type="button" data-workspace-action="move-down">Send backward</button><hr><button type="button" data-workspace-action="ps-center-x">Center horizontally</button><button type="button" data-workspace-action="ps-center-page">Center on page</button><hr><button type="button" data-workspace-action="ps-delete-selection">Delete selection <kbd>Del</kbd></button></div></details>
+        <details class="workspace-menu"><summary>Experimental <span class="workspace-beta-mark">β</span></summary><div class="workspace-menu-items"><button id="workspace-open-experimental" type="button">Printer width lab <span class="workspace-menu-note">Preview only</span></button><a href="https://github.com/FlyzDev/t02-studio/blob/main/docs/multi-printer-roadmap.md" target="_blank" rel="noopener noreferrer">Multi-printer roadmap ↗</a><p class="workspace-menu-caution">Try alternative raster widths without sending anything to a printer.</p></div></details>
+        <details class="workspace-menu"><summary>About</summary><div class="workspace-menu-items"><button id="workspace-open-about" type="button">About T02 Studio</button><a href="https://github.com/FlyzDev/t02-studio" target="_blank" rel="noopener noreferrer">Project on GitHub ↗</a><a href="https://flyz.dev" target="_blank" rel="noopener noreferrer">Flyz.dev ↗</a></div></details>
       </nav>
       <div class="workspace-menubar-right"><span class="workspace-paper-pill">53 mm</span><button id="ps-printer-toggle" class="workspace-port-pill" type="button" title="Printer connection">No printer</button><button type="button" id="ps-clear-page" class="workspace-clear-page" aria-label="Clear page" title="Clear page (Undo available)">Clear page</button><button type="button" id="ps-quick-save" class="workspace-save" aria-label="Save project" title="Save project">▣</button></div>
     </header>
@@ -232,9 +234,29 @@
   </div>
   <input id="project-file" type="file" accept="application/json,.json" hidden>
   <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
+  <dialog id="workspace-experimental-dialog" class="workspace-modal" aria-labelledby="workspace-experimental-title">
+    <div class="workspace-modal-header"><div><span class="workspace-modal-eyebrow">EXPERIMENTAL · NO PRINTER OUTPUT</span><h2 id="workspace-experimental-title">Printer width lab</h2></div><button id="workspace-close-experimental" class="workspace-modal-close" type="button" aria-label="Close experimental lab">×</button></div>
+    <div class="workspace-modal-body">
+      <p>Preview your current design at other raster widths. The image is <strong>resampled</strong>, not re-laid out for a new printer. Your actual canvas, saved project and T02 print settings stay unchanged.</p>
+      <div class="workspace-experimental-widths" role="group" aria-label="Experimental raster widths">
+        <button type="button" data-experimental-width="384" class="active" aria-pressed="true"><strong>384 dots</strong><small>T02 reference</small></button>
+        <button type="button" data-experimental-width="576" aria-pressed="false"><strong>576 dots</strong><small>Unverified</small></button>
+        <button type="button" data-experimental-width="832" aria-pressed="false"><strong>832 dots</strong><small>Unverified</small></button>
+      </div>
+      <div class="workspace-experimental-preview" aria-label="Resampled design preview"><canvas id="workspace-experimental-canvas" width="384" height="1" aria-label="Experimental raster preview"></canvas></div>
+      <p id="workspace-experimental-status" class="workspace-experimental-status" role="status" aria-live="polite">Choose a width to preview.</p>
+      <div class="workspace-experimental-actions"><button id="workspace-experimental-download" type="button" disabled>Download experimental PNG</button><span>No print commands are sent.</span></div>
+      <p class="workspace-experimental-warning">These are software-only width experiments, not confirmed compatibility with other printers. The ordinary <strong>Print</strong> button still targets only the verified T02 workflow.</p>
+    </div>
+  </dialog>
+  <dialog id="workspace-about-dialog" class="workspace-modal workspace-about-modal" aria-labelledby="workspace-about-title">
+    <div class="workspace-modal-header"><div><span class="workspace-modal-eyebrow">FREE & OPEN SOURCE</span><h2 id="workspace-about-title">T02 Studio</h2></div><button id="workspace-close-about" class="workspace-modal-close" type="button" aria-label="Close about dialog">×</button></div>
+    <div class="workspace-modal-body"><p>A visual label, sticker and thermal print editor. Made by <strong>Mustafa Uçar (Flyz)</strong>.</p><div class="workspace-about-links"><a href="https://github.com/FlyzDev" target="_blank" rel="noopener noreferrer">GitHub · FlyzDev ↗</a><a href="https://github.com/FlyzDev/t02-studio" target="_blank" rel="noopener noreferrer">T02 Studio repository ↗</a><a href="https://flyz.dev" target="_blank" rel="noopener noreferrer">Portfolio · flyz.dev ↗</a></div><p class="workspace-about-fineprint">GNU AGPL-3.0-only · Independent community project, not affiliated with or endorsed by Phomemo. <a href="https://github.com/FlyzDev/t02-studio/blob/main/LICENSE" target="_blank" rel="noopener noreferrer">View license ↗</a></p></div>
+  </dialog>
   <script src="/static/studio-core.js"></script>
   <script src="/static/studio.js" defer></script>
   <script src="/static/studio-alt-theme.js" defer></script>
   <script src="/static/studio-workspace.js" defer></script>
+  <script src="/static/studio-experiments.js" defer></script>
 </body>
 </html>

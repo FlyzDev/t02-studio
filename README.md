@@ -14,6 +14,8 @@ T02 Studio combines text, images, PDF extracts, QR codes and real retail barcode
 
 **Canvas navigation:** hold the **middle mouse button** and drag over the paper or surrounding workspace to pan in any direction. This changes only the viewport, never the layer coordinates or print result, and works with all workspace zoom presets.
 
+**Experimental (beta):** the application menu now includes a **Printer width lab**. Try software-only 384-, 576- and 832-dot raster previews of the current design, then download the resulting PNG. The experiment rescales pixels, does not reflow the document, does not change the saved project or real print settings, and **never sends a print job**. The non-T02 widths are unverified, not new supported printer models. **About** displays author credits and links to the project, [FlyzDev](https://github.com/FlyzDev) and [flyz.dev](https://flyz.dev).
+
 ## Preview
 
 ### Editorial label with QR
@@ -151,6 +153,7 @@ py -3 -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -r requirements.txt
 .\.venv\Scripts\python.exe -m unittest discover -s tests -v
 node tests/test_studio_core.js
+node tests/test_experiments.js
 ```
 
 The Python tests fake the serial printer and **do not print physical paper**. The JavaScript geometry tests run in Node; no browser-side build step is required.
@@ -175,6 +178,8 @@ See the [multi-printer roadmap](docs/multi-printer-roadmap.md) for the honest
 compatibility matrix, test gates and planned device-neutral branding.
 
 ## License and acknowledgement
+
+Created by **Mustafa Uçar (Flyz)**. See [GitHub profile](https://github.com/FlyzDev) and [flyz.dev](https://flyz.dev).
 
 T02 Studio is released under **GNU AGPL-3.0-only**. See [LICENSE](LICENSE). It uses PyMuPDF, which is available under the AGPL or a separate commercial license. Check the licenses of all dependencies if you redistribute modified builds. The [vivier/phomemo-tools](https://github.com/vivier/phomemo-tools) repository was a research reference for T02 interoperability; consult its GPL-3.0 license independently.
 

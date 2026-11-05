@@ -1,5 +1,7 @@
 ## Unreleased · Multi-printer foundation (T02 remains the only verified printer)
 
+- A top-level **Experimental** menu offers a printer-width lab with real artwork-only previews at 384, 576 or 832 dots and an experimental PNG download. It cannot submit print jobs or change the saved T02 document.
+- An **About** menu and dialog credit Mustafa Uçar (Flyz) and link to FlyzDev, the GitHub repository, flyz.dev and the open-source license.
 - Printer capabilities now have a verified-model registry. A new read-only `/api/printer-profiles` endpoint advertises only models confirmed against hardware, currently the Phomemo T02 Mini.
 - The ESC/POS raster encoder supports profile-selected byte-aligned widths and has synthetic 576-dot packet tests. The legacy T02 packet sequence and the default 384-dot workflow remain unchanged.
 - `/api/print` fails closed on unverified printer profile IDs. No other printer model, USB transport or network transport is claimed to be supported yet.
