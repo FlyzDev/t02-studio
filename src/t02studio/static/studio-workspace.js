@@ -98,21 +98,27 @@
   $('ps-context-font').addEventListener('change', () => {
     forward('ps-context-font', editingText() ? 'prop-font-family' : 'text-font-family', 'change');
   });
-  $('ps-context-size').addEventListener('change', () => {
+  const applyContextSize = () => {
+    if ($('ps-context-size').value === '') return;
     const editing = editingText();
     const size = Math.max(editing ? 8 : 12, Math.min(editing ? 100 : 72, Number($('ps-context-size').value) || 26));
     $('ps-context-size').value = String(size);
     forward('ps-context-size', editing ? 'prop-font-size' : 'font-size', editing ? 'change' : 'input');
-  });
+  };
+  $('ps-context-size').addEventListener('input', applyContextSize);
+  $('ps-context-size').addEventListener('change', applyContextSize);
   $('ps-context-weight').addEventListener('change', () => {
     const editing = editingText();
     forward('ps-context-weight', editing ? 'prop-ink-thickness' : 'text-ink-thickness', 'input');
   });
-  $('ps-context-opacity').addEventListener('change', () => {
+  const applyContextOpacity = () => {
+    if ($('ps-context-opacity').value === '') return;
     $('ps-context-opacity').value = String(Math.max(0, Math.min(100, Number($('ps-context-opacity').value) || 0)));
     forward('ps-context-opacity', 'prop-opacity', 'input');
     $('prop-opacity').dispatchEvent(new Event('change', { bubbles: true }));
-  });
+  };
+  $('ps-context-opacity').addEventListener('input', applyContextOpacity);
+  $('ps-context-opacity').addEventListener('change', applyContextOpacity);
   $('workspace-drawer-close').addEventListener('click', closeDrawer);
   document.querySelector('.canvas-stage').addEventListener('pointerdown', closeDrawer);
   $('ps-printer-toggle').addEventListener('click', () => {
