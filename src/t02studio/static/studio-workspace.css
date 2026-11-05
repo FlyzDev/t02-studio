@@ -255,6 +255,7 @@ html[data-theme] .content-area { --workspace-inspector-width: 252px; position: r
 html[data-theme] .canvas-stage { grid-column: 1; grid-row: 1; min-height: 0; align-items: safe center; padding: 23px 20px 31px; background: var(--workspace-canvas); scrollbar-color: #484b50 transparent; }
 .canvas-stage .stage-caption { display: none; }
 .canvas-stage .paper-surround { zoom: var(--workspace-zoom, .75); }
+.canvas-stage.is-middle-panning, .canvas-stage.is-middle-panning * { cursor: grabbing !important; user-select: none !important; }
 .canvas-stage .paper-heading { display: none; }
 .canvas-stage .paper { box-shadow: 0 8px 25px #0004; }
 .canvas-stage .paper-resize-handle { padding-bottom: 0; }

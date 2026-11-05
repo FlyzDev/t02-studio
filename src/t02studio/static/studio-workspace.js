@@ -334,6 +334,63 @@
   });
   applyZoom();
 
+  // Middle-mouse drag pans the paper within the workbench without moving any
+  // actual layer, changing its geometry, or adding an Undo history entry.
+  // Capture on the stage so this also works when starting on the paper itself.
+  const stage = $('canvas-stage');
+  const sheet = stage.querySelector('.paper-surround');
+  let panX = 0, panY = 0, panPointer = null, panLastX = 0, panLastY = 0;
+  const finishPan = () => {
+    if (panPointer === null) return;
+    const pointer = panPointer;
+    panPointer = null;
+    stage.classList.remove('is-middle-panning');
+    if (stage.hasPointerCapture(pointer)) stage.releasePointerCapture(pointer);
+  };
+  stage.addEventListener('pointerdown', event => {
+    if (event.button !== 1 || panPointer !== null) return;
+    event.preventDefault();
+    event.stopPropagation();
+    panPointer = event.pointerId;
+    panLastX = event.clientX;
+    panLastY = event.clientY;
+    stage.classList.add('is-middle-panning');
+    stage.setPointerCapture(event.pointerId);
+  }, true);
+  stage.addEventListener('pointermove', event => {
+    if (event.pointerId !== panPointer) return;
+    event.preventDefault();
+    event.stopPropagation();
+    if (!(event.buttons & 4)) { finishPan(); return; }
+    // CSS zoom scales the paper and its translate, so compensate to keep the
+    // visible movement exactly under the pointer at every zoom level.
+    const paperZoom = parseFloat(getComputedStyle(sheet).zoom) || 1;
+    panX += (event.clientX - panLastX) / paperZoom;
+    panY += (event.clientY - panLastY) / paperZoom;
+    panLastX = event.clientX;
+    panLastY = event.clientY;
+    sheet.style.transform = `translate3d(${panX}px, ${panY}px, 0)`;
+  }, true);
+  const panPointerEnd = event => {
+    if (event.pointerId !== panPointer) return;
+    event.preventDefault();
+    event.stopPropagation();
+    finishPan();
+  };
+  stage.addEventListener('pointerup', panPointerEnd, true);
+  stage.addEventListener('pointercancel', panPointerEnd, true);
+  stage.addEventListener('lostpointercapture', event => {
+    if (event.pointerId === panPointer) finishPan();
+  });
+  window.addEventListener('blur', finishPan);
+  // Don't let Chromium's middle-click auto-scroll UI intercept the gesture.
+  stage.addEventListener('mousedown', event => {
+    if (event.button === 1) event.preventDefault();
+  }, true);
+  stage.addEventListener('auxclick', event => {
+    if (event.button === 1) event.preventDefault();
+  }, true);
+
   document.addEventListener('keydown', event => {
     if (event.key === 'Escape') closeAdjustPopovers();
     const target = event.target;

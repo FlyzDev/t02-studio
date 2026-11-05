@@ -12,6 +12,8 @@ T02 Studio combines text, images, PDF extracts, QR codes and real retail barcode
 
 **Multi-layer selection:** in **Free edit**, choose **Select / box-select** and drag over empty paper **or the gray workspace around it** to draw a selection rectangle, just like selecting desktop icons. Drag any selected element to move the selection together, or drag the group's bottom-right corner to resize all selected layers. Hold **Shift while dragging** to constrain movement to the dominant horizontal or vertical axis; releasing Shift allows fluid free movement. Shift-click elements on the canvas, or Ctrl/Shift-click rows in the Layers panel to add/remove them from the selection. Each layer has its own `×` delete button; Delete/Backspace removes the current selection. Ctrl+A selects all visible layers, Esc deselects, and Undo reverses edits.
 
+**Canvas navigation:** hold the **middle mouse button** and drag over the paper or surrounding workspace to pan in any direction. This changes only the viewport, never the layer coordinates or print result, and works with all workspace zoom presets.
+
 ## Preview
 
 ![T02 Studio label designer with a 50 x 80 mm Field Notes sample, stacked frames and an editable opacity slider](docs/screenshots/field-notes-editor.png)

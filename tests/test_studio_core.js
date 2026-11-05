@@ -123,6 +123,12 @@ assert.ok(workspaceCss.includes('width: min(350px, calc(100vw - 84px))'), 'Flyou
 assert.ok(workspaceCss.includes('top: calc(43px + var(--workspace-toolbar-height, 50px))'), 'Flyout must begin below the toolbar');
 assert.ok(workspaceCss.includes('flex-wrap: wrap; align-content: center'), 'Toolbar must wrap when the window narrows');
 assert.ok(workspaceJs.includes('new ResizeObserver(syncToolbarHeight)'), 'Flyout must follow responsive toolbar height');
+assert.ok(workspaceJs.includes("stage.addEventListener('pointerdown'"), 'Canvas must handle middle-mouse pan');
+assert.ok(workspaceJs.includes('event.button !== 1'), 'Pan must only start with the middle button');
+assert.ok(workspaceJs.includes('stage.setPointerCapture(event.pointerId)'), 'Pan must work beyond the stage edges');
+assert.ok(workspaceJs.includes('sheet.style.transform = `translate3d('), 'Pan must move the paper without editing layers');
+assert.ok(workspaceJs.includes('getComputedStyle(sheet).zoom'), 'Pan distance must respect the current zoom');
+assert.ok(workspaceCss.includes('.canvas-stage.is-middle-panning'), 'Pan must show grabbing feedback');
 assert.ok(workspaceJs.includes("window.addEventListener('resize', syncToolbarHeight)"), 'Flyout must track viewport resizing');
 assert.ok(workspaceCss.includes('grid-template-rows: minmax(0,1fr)'), 'Canvas must have a stable row');
 assert.ok(workspaceCss.includes('grid-column: 2; grid-row: 1'), 'Inspector must remain independent of the flyout');
