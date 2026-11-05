@@ -81,8 +81,23 @@ assert.equal(rotatedFlow.blocks[0].x, 147);
 assert.equal(rotatedFlow.blocks[0].y, 16);
 const source = fs.readFileSync(path.join(__dirname, '../src/t02studio/static/studio.js'), 'utf8');
 const markup = fs.readFileSync(path.join(__dirname, '../src/t02studio/templates/studio.html'), 'utf8');
+const workspaceMarkup = fs.readFileSync(path.join(__dirname, '../src/t02studio/templates/studio_alt.html'), 'utf8');
+const workspaceCss = fs.readFileSync(path.join(__dirname, '../src/t02studio/static/studio-workspace.css'), 'utf8');
+const workspaceJs = fs.readFileSync(path.join(__dirname, '../src/t02studio/static/studio-workspace.js'), 'utf8');
+for (const id of ['ps-context-font', 'ps-context-size', 'ps-context-weight', 'ps-context-opacity',
+  'ps-center-x', 'ps-center-page', 'ps-rail-select']) {
+  assert.ok(workspaceMarkup.includes(`id="${id}"`), `Workspace missing interactive control ${id}`);
+}
+for (const name of ['stagePointerDown', 'stagePointerMove', 'stagePointerUp', 'reorderLayer', 'centerSelection']) {
+  assert.ok(source.includes(`function ${name}(`), `Workspace missing behavior ${name}`);
+}
+assert.ok(source.includes('row.draggable = true'));
+assert.ok(source.includes('"compact", "true"'));
+assert.ok(workspaceCss.includes('.layer-item.drop-before'));
+assert.ok(workspaceCss.includes('align-items: center'));
+assert.ok(workspaceJs.includes("forward('ps-context-font'"));
 for (const match of source.matchAll(/\$\("([\w-]+)"\)/g)) {
-  assert.ok(markup.includes(`id="${match[1]}"`) || source.includes(`id="${match[1]}"`) ||
+  assert.ok(markup.includes(`id="${match[1]}"`) || workspaceMarkup.includes(`id="${match[1]}"`) || source.includes(`id="${match[1]}"`) ||
     source.includes(`.id = "${match[1]}"`),
     `Missing element in composer or dynamically installed property controls: ${match[1]}`);
 }

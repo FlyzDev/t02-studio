@@ -10,6 +10,7 @@
 
   function closeDrawer() {
     rail.classList.remove('drawer-open');
+    for (const button of document.querySelectorAll('.tool-tab.active')) button.classList.remove('active');
     selectButton.classList.toggle('active', document.querySelector('#free-select')?.classList.contains('active'));
   }
 
@@ -23,22 +24,28 @@
     syncScheduled = false;
     const active = [...document.querySelectorAll('.layer-item.active')];
     const count = active.length;
-    const props = $('selection-properties');
     const placeholder = $('workspace-properties-empty');
     const isText = count === 1 && !$('text-properties').classList.contains('hidden');
     placeholder.classList.toggle('hidden', count === 1);
     if (count > 1) {
-      $('workspace-properties-message').textContent = `${count} layers selected. Drag any selected item to move the group, or its shared corner to resize it.`;
+      $('workspace-properties-message').textContent = `${count} layers selected. Move or resize them together, or use Center on page above the canvas.`;
     } else if (count === 0) {
-      $('workspace-properties-message').textContent = 'Choose a layer to edit its properties, or drag over the canvas to box-select several.';
+      $('workspace-properties-message').textContent = 'Choose a layer, or drag a selection rectangle from the empty gray workspace across the paper.';
     }
     $('ps-active-tool').textContent = count > 1 ? `↖ ${count} selected` : '↖ Select';
-    const face = isText ? $('prop-font-family').selectedOptions[0]?.textContent?.split(' · ')[1] :
-      $('text-font-family').selectedOptions[0]?.textContent?.split(' · ')[1];
-    $('ps-context-font').textContent = `Font: ${face || 'Segoe UI'}`;
-    $('ps-context-size').textContent = `${isText ? $('prop-font-size').value : $('font-size').value} px`;
-    $('ps-context-weight').textContent = `Weight ${isText ? $('prop-ink-thickness').value : $('text-ink-thickness').value}/5`;
-    $('ps-context-opacity').textContent = `${count === 1 ? $('prop-opacity').value : 100}%`;
+    const otherTypeSelected = count > 1 || (count === 1 && !isText);
+    $('ps-context-font').disabled = otherTypeSelected;
+    $('ps-context-size').disabled = otherTypeSelected;
+    $('ps-context-weight').disabled = otherTypeSelected;
+    $('ps-context-opacity').disabled = count !== 1;
+    $('ps-center-x').disabled = count === 0;
+    $('ps-center-page').disabled = count === 0;
+    $('ps-context-font').value = isText ? $('prop-font-family').value : $('text-font-family').value;
+    if (document.activeElement !== $('ps-context-size'))
+      $('ps-context-size').value = isText ? $('prop-font-size').value : $('font-size').value;
+    $('ps-context-weight').value = isText ? $('prop-ink-thickness').value : $('text-ink-thickness').value;
+    if (document.activeElement !== $('ps-context-opacity'))
+      $('ps-context-opacity').value = count === 1 ? $('prop-opacity').value : 100;
     $('ps-length-control').value = $('page-height').value;
     $('ps-length-control').disabled = !document.querySelector('[data-mode="free"]')?.classList.contains('active');
     const port = $('printer-select').value;
@@ -78,6 +85,33 @@
     selectButton.classList.add('active');
     $('composition-canvas').focus();
     scheduleSync();
+  });
+  $('ps-active-tool').addEventListener('click', () => selectButton.click());
+  const forward = (sourceId, targetId, eventName) => {
+    const source = $(sourceId), target = $(targetId);
+    target.value = source.value;
+    target.dispatchEvent(new Event(eventName, { bubbles: true }));
+    scheduleSync();
+  };
+  const editingText = () => !$('selection-properties').classList.contains('hidden') &&
+    !$('text-properties').classList.contains('hidden');
+  $('ps-context-font').addEventListener('change', () => {
+    forward('ps-context-font', editingText() ? 'prop-font-family' : 'text-font-family', 'change');
+  });
+  $('ps-context-size').addEventListener('change', () => {
+    const editing = editingText();
+    const size = Math.max(editing ? 8 : 12, Math.min(editing ? 100 : 72, Number($('ps-context-size').value) || 26));
+    $('ps-context-size').value = String(size);
+    forward('ps-context-size', editing ? 'prop-font-size' : 'font-size', editing ? 'change' : 'input');
+  });
+  $('ps-context-weight').addEventListener('change', () => {
+    const editing = editingText();
+    forward('ps-context-weight', editing ? 'prop-ink-thickness' : 'text-ink-thickness', 'input');
+  });
+  $('ps-context-opacity').addEventListener('change', () => {
+    $('ps-context-opacity').value = String(Math.max(0, Math.min(100, Number($('ps-context-opacity').value) || 0)));
+    forward('ps-context-opacity', 'prop-opacity', 'input');
+    $('prop-opacity').dispatchEvent(new Event('change', { bubbles: true }));
   });
   $('workspace-drawer-close').addEventListener('click', closeDrawer);
   document.querySelector('.canvas-stage').addEventListener('pointerdown', closeDrawer);

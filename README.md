@@ -8,9 +8,9 @@ T02 Studio is an independent community project and is **not affiliated with or e
 
 T02 Studio combines text, images, PDF extracts, QR codes and real retail barcodes into one 384-dot-wide strip. Its free-layout editor supports dragging, resizing, 90° rotation, an adjustable paper edge, paste-to-add images, shapes, borders, layers, project JSON and PNG export.
 
-**Graphics-editor workspace:** the main editor now has a compact File / Edit / View / Layer menu, a vertical selection and component tool rail, an unobstructed central canvas, and a right-hand Properties / Layers inspector. Choose a tool to open its options in a temporary drawer; selecting the canvas closes the drawer. The bottom status bar contains zoom, PNG export, and Print. Shortcuts: **V** selects, **T** opens text, **Ctrl+S** saves. Older locally saved designs remain compatible. The Classic and legacy composer views are still available.
+**Graphics-editor workspace:** the main editor has a compact File / Edit / View / Layer menu, a vertical selection and component tool rail, an unobstructed central canvas, and a right-hand Properties / Layers inspector. Choose a tool to open its options in a temporary drawer; selecting the canvas closes the drawer. The top contextual bar lets you adjust text font, size, weight, opacity and center a selection horizontally or on the page. Drag Layers rows by their grip to reorder the stack. The bottom status bar contains zoom, PNG export, and Print. Shortcuts: **V** selects, **T** opens text, **Ctrl+S** saves. Older locally saved designs remain compatible. The Classic and legacy composer views are still available.
 
-**Multi-layer selection:** in **Free edit**, choose **Select / box-select** and drag over an empty area of the paper to draw a selection rectangle, just like selecting desktop icons. Drag any selected element to move the selection together, or drag the group's bottom-right corner to resize all selected layers. Shift-click elements on the canvas, or Ctrl/Shift-click rows in the Layers panel to add/remove them from the selection. Each layer has its own `×` delete button; Delete/Backspace removes the current selection. Ctrl+A selects all visible layers, Esc deselects, and Undo reverses edits.
+**Multi-layer selection:** in **Free edit**, choose **Select / box-select** and drag over empty paper **or the gray workspace around it** to draw a selection rectangle, just like selecting desktop icons. Drag any selected element to move the selection together, or drag the group's bottom-right corner to resize all selected layers. Shift-click elements on the canvas, or Ctrl/Shift-click rows in the Layers panel to add/remove them from the selection. Each layer has its own `×` delete button; Delete/Backspace removes the current selection. Ctrl+A selects all visible layers, Esc deselects, and Undo reverses edits.
 
 ## Preview
 
@@ -62,7 +62,7 @@ The main editor includes ten component tools:
 | Text | Free text with typography, alignment and variable ink thickness |
 | Image | Photos, logos and pasted pictures |
 | PDF | Rendered PDF segments |
-| QR | QR code with optional caption |
+| QR | Compact QR square with a scanner-friendly quiet zone; no baked-in caption or receipt-sized margins |
 | Barcode | Real **Code 128** or **EAN-13** barcode with optional printed numbers |
 | Address | Editable multiline address text, with no geolocation or online lookups |
 | Date / time | Current local date/time as editable text, captured when inserted |

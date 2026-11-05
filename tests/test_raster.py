@@ -73,6 +73,12 @@ class RasterTests(unittest.TestCase):
         self.assertGreaterEqual(result.height, 300)
         self.assertLess(result.convert("L").getextrema()[0], 100)
 
+    def test_compact_qr_is_square_without_receipt_margins(self):
+        result = render_qr("https://example.com", compact=True)
+        self.assertEqual(result.width, result.height)
+        self.assertLessEqual(result.width, 300)
+        self.assertLess(result.convert("L").getextrema()[0], 100)
+
     def test_blank_qr_content_is_rejected(self):
         with self.assertRaisesRegex(ValueError, "QR"):
             render_qr("")

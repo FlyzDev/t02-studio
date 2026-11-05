@@ -133,18 +133,23 @@ def render_upload(blob: bytes, density: int = 50, dither: bool = True,
     return grayscale.point(lambda value: 255 if value >= threshold else 0, mode="1")
 
 
-def render_qr(value: str, caption: str = "") -> Image.Image:
+def render_qr(value: str, caption: str = "", *, compact: bool = False) -> Image.Image:
     if not value or not value.strip():
         raise ValueError("QR code content cannot be empty")
     if len(value) > 1500:
         raise ValueError("QR code content is too long")
     import qrcode
     qr = qrcode.QRCode(version=None, error_correction=qrcode.constants.ERROR_CORRECT_M,
-                       box_size=4, border=2)
+                       box_size=8 if compact else 4, border=1 if compact else 2)
     qr.add_data(value)
     qr.make(fit=True)
     code = qr.make_image(fill_color="black", back_color="white").convert("1")
     code.thumbnail((300, 300), Image.Resampling.NEAREST)
+    if compact:
+        # Editor inserts the code as its own square layer. Do not bake it into
+        # a 384x320 receipt strip with large white margins. Keep one module
+        # of quiet zone; users can leave more paper around it for scanners.
+        return code
     label = render_text(caption, font_size=20, padding=8, align="center") if caption.strip() else None
     total_height = 320 + (label.height + 8 if label else 0)
     canvas = Image.new("1", (PRINT_WIDTH, total_height), 1)

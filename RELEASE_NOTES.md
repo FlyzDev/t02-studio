@@ -1,3 +1,11 @@
+## T02 Studio v0.3.1 · Interactive editing polish
+
+- **Marquee selection from the gray workspace:** drag a rectangle starting outside the white paper to select layers it crosses. Existing blank-paper marquee, Shift/Ctrl selection and group move/resize continue to work.
+- **Drag-to-reorder Layers:** grab a row's dotted handle or row body and drop above/below another layer. An accent line shows the intended position; Undo restores the previous stack.
+- **Center commands:** with one or several layers selected, use **Center X** or **Center on page** on the top bar, or equivalent Layer menu actions.
+- **QR-only insertion:** QR components now create a tight square with a small scanner-friendly quiet zone, without a 384-pixel-wide white receipt or caption. Existing projects and the standard 384-pixel print endpoint remain compatible.
+- **Working contextual controls:** top-bar Font, Size, Weight and Opacity now edit the selected object where applicable, or provide text defaults before insertion. Left tool icons are centered in their rail, with clearer active and drag feedback.
+
 ## T02 Studio v0.3.0 · Graphics-editor workspace
 
 - **Rebuilt application shell:** File / Edit / View / Layer menus, a narrow left tool rail, an open central thermal-paper canvas, and a right inspector with Properties above Layers. This replaces the long three-column sidebar on `/` and `/alt`.

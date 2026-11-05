@@ -455,7 +455,10 @@ function updateLayers() {
   [...work.items].reverse().forEach(item => {
     const row = document.createElement("div");
     row.className = "layer-item" + (work.selectedIds.includes(item.id) ? " active" : "");
-    row.title = "Click to select · Ctrl/Shift-click to select several";
+    row.title = "Click to select · Drag to reorder · Ctrl/Shift-click to multi-select";
+    row.draggable = true;
+    const grip = document.createElement("span"); grip.className = "layer-grip";
+    grip.textContent = "⠿"; grip.title = "Drag to reorder this layer";
     const symbol = document.createElement("span"); symbol.className = "layer-symbol";
     symbol.textContent = ({ text: "T", frame: "▣", shape: "◇", image: "▧" })[item.type];
     const names = document.createElement("div"); names.className = "layer-text";
@@ -474,7 +477,32 @@ function updateLayers() {
     remove.addEventListener("click", event => {
       event.stopPropagation(); deleteLayers([item.id]);
     });
-    row.append(symbol, names, visibility, remove);
+    row.append(grip, symbol, names, visibility, remove);
+    row.addEventListener("dragstart", event => {
+      work.reorderDragId = item.id;
+      event.dataTransfer.effectAllowed = "move";
+      event.dataTransfer.setData("text/plain", item.id);
+      row.classList.add("dragging");
+    });
+    row.addEventListener("dragover", event => {
+      if (!work.reorderDragId || work.reorderDragId === item.id) return;
+      event.preventDefault(); event.dataTransfer.dropEffect = "move";
+      const before = event.clientY < row.getBoundingClientRect().top + row.offsetHeight / 2;
+      row.classList.toggle("drop-before", before);
+      row.classList.toggle("drop-after", !before);
+    });
+    row.addEventListener("dragleave", () => row.classList.remove("drop-before", "drop-after"));
+    row.addEventListener("drop", event => {
+      if (!work.reorderDragId) return;
+      event.preventDefault();
+      const before = event.clientY < row.getBoundingClientRect().top + row.offsetHeight / 2;
+      reorderLayer(work.reorderDragId, item.id, before);
+      work.reorderDragId = null;
+    });
+    row.addEventListener("dragend", () => {
+      work.reorderDragId = null;
+      document.querySelectorAll(".layer-item").forEach(element => element.classList.remove("dragging", "drop-before", "drop-after"));
+    });
     row.addEventListener("click", event => {
       if (event.ctrlKey || event.metaKey || event.shiftKey) {
         const ids = new Set(work.selectedIds);
@@ -791,6 +819,38 @@ function reorderSelected(direction) {
   render(); scheduleDraft();
 }
 
+function reorderLayer(movingId, targetId, beforeTarget) {
+  if (movingId === targetId) return;
+  const displayed = [...work.items].reverse();
+  const moving = displayed.find(item => item.id === movingId);
+  if (!moving) return;
+  const remaining = displayed.filter(item => item.id !== movingId);
+  const target = remaining.findIndex(item => item.id === targetId);
+  if (target < 0) return;
+  remaining.splice(target + (beforeTarget ? 0 : 1), 0, moving);
+  if (displayed.every((item, index) => item.id === remaining[index].id)) return;
+  checkpoint(); work.items = remaining.reverse();
+  render(); scheduleDraft();
+}
+
+function centerSelection(axis = "both") {
+  if (!work.selectedIds.length) return;
+  finishInlineEdit();
+  if (work.mode !== "free") switchMode("free");
+  const layers = selectedItems();
+  const bounds = selectionBounds(layers);
+  if (!bounds) return;
+  const dx = Math.round((PAPER_WIDTH - bounds.w) / 2 - bounds.x);
+  const dy = axis === "both" ? Math.round((work.pageHeight - bounds.h) / 2 - bounds.y) : 0;
+  if (dx === 0 && dy === 0) return;
+  checkpoint();
+  for (const layer of layers) {
+    layer.x = Math.max(0, Math.min(PAPER_WIDTH - layer.w, layer.x + dx));
+    layer.y = Math.max(0, Math.min(work.pageHeight - layer.h, layer.y + dy));
+  }
+  render(); scheduleDraft();
+}
+
 function deleteLayers(ids) {
   const removing = new Set(ids);
   if (!work.items.some(item => removing.has(item.id))) return;
@@ -946,6 +1006,25 @@ function pointerDown(event) {
     changed: false, checkpointed: false };
   canvas.setPointerCapture(event.pointerId);
 }
+function stagePointerDown(event) {
+  const stage = $("canvas-stage");
+  if (event.target !== stage || event.button !== 0 || work.mode !== "free" || work.freeTool !== "select") return;
+  const baseIds = event.shiftKey ? [...work.selectedIds] : [];
+  const position = pointerPosition(event);
+  setSelection(baseIds);
+  work.drag = { operation: "marquee", start: position, current: position, baseIds };
+  stage.setPointerCapture(event.pointerId);
+  render();
+}
+function stagePointerMove(event) {
+  if ($("canvas-stage").hasPointerCapture(event.pointerId) && work.drag?.operation === "marquee") pointerMove(event);
+}
+function stagePointerUp(event) {
+  const stage = $("canvas-stage");
+  if (!stage.hasPointerCapture(event.pointerId)) return;
+  pointerUp(event);
+  stage.releasePointerCapture(event.pointerId);
+}
 function pointerMove(event) {
   if (!work.drag) return;
   const pos = pointerPosition(event);
@@ -1083,7 +1162,8 @@ async function addQr() {
   const value = $("qr-value").value.trim();
   if (!value) throw Error("Enter QR code content");
   const body = new FormData(); body.append("kind", "qr"); body.append("qr_value", value);
-  body.append("caption", $("qr-caption").value);
+  // Tight square preview: no baked-in receipt-sized white margins or caption.
+  body.append("compact", "true");
   const data = await fromServerPreview(body);
   const width = work.mode === "free" ? 280 : 352;
   addItem({ type: "image", name: "QR · " + value.slice(0, 25), src: data.src,
@@ -1439,6 +1519,8 @@ function bind() {
   });
   $("move-up").addEventListener("click", () => reorderSelected(1));
   $("move-down").addEventListener("click", () => reorderSelected(-1));
+  $("ps-center-page")?.addEventListener("click", () => centerSelection("both"));
+  $("ps-center-x")?.addEventListener("click", () => centerSelection("x"));
   $("duplicate").addEventListener("click", duplicateSelected);
   $("rotate-left").addEventListener("click", () => rotateSelected(-1));
   $("rotate-right").addEventListener("click", () => rotateSelected(1));
@@ -1460,6 +1542,10 @@ function bind() {
   canvas.addEventListener("pointermove", pointerMove);
   canvas.addEventListener("pointerup", pointerUp);
   canvas.addEventListener("pointercancel", pointerUp);
+  $("canvas-stage").addEventListener("pointerdown", stagePointerDown);
+  $("canvas-stage").addEventListener("pointermove", stagePointerMove);
+  $("canvas-stage").addEventListener("pointerup", stagePointerUp);
+  $("canvas-stage").addEventListener("pointercancel", stagePointerUp);
   canvas.addEventListener("dblclick", event => {
     const box = hitTest(pointerPosition(event));
     if (box) { setSelection([box.id]); render(); beginInlineEdit(selected()); }

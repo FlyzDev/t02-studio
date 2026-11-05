@@ -37,7 +37,7 @@ def _file_blob() -> bytes:
     return blob
 
 
-def _render_request():
+def _render_request(*, preview: bool = False):
     kind = request.form.get("kind", "text")
     if kind == "text":
         return render_text(
@@ -71,7 +71,8 @@ def _render_request():
             raise ValueError(f"PDF segment must be between 1 and {len(segments)}")
         return segments[index], index, len(segments)
     if kind == "qr":
-        return render_qr(request.form.get("qr_value", ""), request.form.get("caption", "")), 0, 1
+        return render_qr(request.form.get("qr_value", ""), request.form.get("caption", ""),
+                         compact=preview and request.form.get("compact") == "true"), 0, 1
     if kind == "barcode":
         return render_barcode(request.form.get("barcode_value", ""),
                               request.form.get("barcode_type", "code128"),
@@ -151,7 +152,7 @@ def create_app(config: dict | None = None) -> Flask:
     @app.post("/api/preview")
     def preview():
         try:
-            image, segment_index, total_segments = _render_request()
+            image, segment_index, total_segments = _render_request(preview=True)
         except ValueError as exc:
             return jsonify(error=str(exc)), 400
         stream = io.BytesIO()

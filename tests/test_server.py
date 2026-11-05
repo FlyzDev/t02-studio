@@ -220,6 +220,12 @@ class ServerTests(unittest.TestCase):
         qr = self.client.post("/api/preview", data={
             "kind": "qr", "qr_value": "https://example.com", "caption": "Demo"})
         self.assertEqual(200, qr.status_code)
+        compact = self.client.post("/api/preview", data={
+            "kind": "qr", "qr_value": "https://example.com", "compact": "true"})
+        self.assertEqual(200, compact.status_code)
+        image = Image.open(io.BytesIO(compact.data))
+        self.assertEqual(image.width, image.height)
+        self.assertLessEqual(image.width, 300)
         bad_pdf = self.client.post("/api/preview", data={
             "kind": "pdf", "file": (io.BytesIO(b"broken"), "broken.pdf")})
         self.assertEqual(400, bad_pdf.status_code)
