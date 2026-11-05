@@ -20,6 +20,9 @@
   // Keep tool controls in the left flyout so resizing the window cannot cause
   // a wide contextual ribbon to collide with the inspector or canvas.
   $('ps-history-actions').append($('undo'), $('redo'));
+  // Reuse the editor's existing rotate buttons and handlers in the permanent
+  // toolbar, preserving their native disabled state and Undo behavior.
+  $('ps-rotation-actions').append($('rotate-left'), $('rotate-right'));
 
   // Favor immediately visible, single-click choices over small native dropdowns.
   // The original selects remain the single source of truth for studio.js.

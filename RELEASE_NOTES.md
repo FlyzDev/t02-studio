@@ -1,3 +1,8 @@
+## T02 Studio v0.3.8 · Permanent rotation controls and showcase refresh
+
+- **Rotate 90° left / right** now sits beside Undo / Redo on the permanent top toolbar. Both buttons remain visible when switching tools and automatically disable unless a single editable layer is selected.
+- New independent showcase compositions highlight frames, typography, shapes, QR, barcodes, rotation and the layer inspector. Screenshot and README descriptions are updated to match the shipped interface.
+
 ## T02 Studio v0.3.7 · Middle-mouse workspace pan
 
 - Hold the **middle mouse button** and drag anywhere over the gray workbench or the paper to pan the design in both directions. Dragging remains pixel-accurate at different zoom levels, and releasing the button restores normal editing.

@@ -216,6 +216,10 @@ html[data-theme="light"] .workspace-clear-page { color: #973e56; background: #fa
 .workspace-history-actions button { border: 1px solid var(--workspace-border); border-radius: 5px; background: #383c43; color: var(--workspace-text); padding: 6px 9px; font-size: 11px; cursor: pointer; }
 .workspace-history-actions button:disabled { opacity: .35; cursor: default; }
 .workspace-history-actions button:hover:not(:disabled) { background: #4b5666; }
+.workspace-rotation-actions { display: inline-flex; flex: none; gap: 4px; padding: 0 5px; border-left: 1px solid var(--workspace-border); }
+.workspace-rotation-actions button { border: 1px solid #4b5c76; border-radius: 5px; background: #303d53; color: #cadcff; padding: 6px 9px; font: inherit; font-size: 11px; font-weight: 650; white-space: nowrap; cursor: pointer; }
+.workspace-rotation-actions button:hover:not(:disabled) { background: #415879; }
+.workspace-rotation-actions button:disabled { opacity: .35; cursor: default; }
 .workspace-options .workspace-tool-caption { color: var(--workspace-accent); background: transparent; font-size: 12px; padding-left: 0; }
 .workspace-option-chip { display: flex; align-items: center; gap: 5px; flex: none; border-radius: 5px; padding: 4px 7px; background: #393c41; color: #aeb7c4; white-space: nowrap; font-weight: 500; }
 .workspace-option-chip select, .workspace-option-chip input { appearance: auto; border: 0; outline-offset: 3px; min-width: 0; border-radius: 3px; padding: 2px 2px; background: transparent; color: var(--workspace-text); font-family: inherit; font-size: 11px; font-weight: 700; cursor: pointer; }
@@ -313,6 +317,8 @@ html[data-theme="light"] .workspace-inline-ribbon .ribbon-choice { background: #
 html[data-theme="light"] .workspace-inline-ribbon .ribbon-choice:hover { background: #e5edfa; border-color: #9ab2dc; }
 html[data-theme="light"] .workspace-inline-ribbon .ribbon-choice.active { background: #d6e4fa; border-color: #648dd2; color: #244d8a; }
 html[data-theme="light"] .workspace-history-actions button { background: #dfe3e9; }
+html[data-theme="light"] .workspace-rotation-actions button { color: #294a80; background: #d2dff5; border-color: #a7bfe3; }
+html[data-theme="light"] .workspace-rotation-actions button:hover:not(:disabled) { background: #bfd3f3; }
 html[data-theme="light"] .workspace-options .workspace-tool-caption { color: var(--workspace-accent); background: transparent; }
 html[data-theme="light"] .workspace-option-chip { background: #dfe3e9; color: #596370; }
 html[data-theme="light"] .workspace-option-chip select, html[data-theme="light"] .workspace-option-chip input { color: #26303d; }

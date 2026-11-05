@@ -6,9 +6,9 @@ T02 Studio is an independent community project and is **not affiliated with or e
 
 **Windows users:** [Download the latest `T02-Studio.exe` from Releases](https://github.com/FlyzDev/t02-studio/releases/latest). No Python, terminal or manual build required. Double-click the EXE to open the editor, leave its console window open while printing, and close the window when finished. The Windows build is unsigned, so verify the published SHA256 checksum if SmartScreen warns. **Never run as Administrator.**
 
-T02 Studio combines text, images, PDF extracts, QR codes and real retail barcodes into one 384-dot-wide strip. Its free-layout editor supports dragging, resizing, 90° rotation, an adjustable paper edge, paste-to-add images, shapes, borders, layers, project JSON and PNG export.
+T02 Studio combines text, images, PDF extracts, QR codes and real retail barcodes into one 384-dot-wide strip. Its free-layout editor supports dragging, resizing, **one-click 90° rotation from the fixed toolbar**, an adjustable paper edge, paste-to-add images, shapes, borders, layers, project JSON and PNG export.
 
-**Graphics-editor workspace:** the main editor has a compact File / Edit / View / Layer menu, a vertical selection and component tool rail with centered vector icons, a central canvas, and a right-hand Properties / Layers inspector. Choosing a tool opens its options in a scrollable **left flyout** beneath the persistent top toolbar. As the window narrows, the toolbar wraps into two or three rows and the flyout tracks its height; the flyout never overlaps the toolbar or shifts the paper/inspector when opened. Shape, Border, text alignment, PDF conversion, barcode format and date/time options use directly clickable palettes instead of dropdowns; the Label Designer's eleven frame styles form a responsive grid. The toolbar retains **Undo / Redo**, layer centering, paper controls, and a visible **Clear page** button with confirmation and Undo support. Click **Size**, **Weight**, or **Opacity** for an anchored live slider below the control; Size and Opacity keep editable numeric inputs. Center-aligned text added in Free edit now starts in a page-centered box. Drag Layers rows by their grip to reorder the stack. The bottom status bar contains zoom, PNG export, and Print. Shortcuts: **V** selects, **T** opens text, **Ctrl+S** saves. Older locally saved designs remain compatible. The Classic and legacy composer views are still available.
+**Graphics-editor workspace:** the main editor has a compact File / Edit / View / Layer menu, a vertical selection and component tool rail with centered vector icons, a central canvas, and a right-hand Properties / Layers inspector. Choosing a tool opens its options in a scrollable **left flyout** beneath the persistent top toolbar. As the window narrows, the toolbar wraps into two or three rows and the flyout tracks its height; the flyout never overlaps the toolbar or shifts the paper/inspector when opened. Shape, Border, text alignment, PDF conversion, barcode format and date/time options use directly clickable palettes instead of dropdowns; the Label Designer's eleven frame styles form a responsive grid. The toolbar always displays **Undo / Redo**, **↶ 90° / ↷ 90°**, layer centering and paper controls. Rotation buttons activate when a single layer is selected. **Clear page** stays visible in the app bar, with confirmation and Undo support. Click **Size**, **Weight**, or **Opacity** for an anchored live slider below the control; Size and Opacity keep editable numeric inputs. Center-aligned text added in Free edit now starts in a page-centered box. Drag Layers rows by their grip to reorder the stack. The bottom status bar contains zoom, PNG export, and Print. Shortcuts: **V** selects, **T** opens text, **Ctrl+S** saves. Older locally saved designs remain compatible. The Classic and legacy composer views are still available.
 
 **Multi-layer selection:** in **Free edit**, choose **Select / box-select** and drag over empty paper **or the gray workspace around it** to draw a selection rectangle, just like selecting desktop icons. Drag any selected element to move the selection together, or drag the group's bottom-right corner to resize all selected layers. Hold **Shift while dragging** to constrain movement to the dominant horizontal or vertical axis; releasing Shift allows fluid free movement. Shift-click elements on the canvas, or Ctrl/Shift-click rows in the Layers panel to add/remove them from the selection. Each layer has its own `×` delete button; Delete/Backspace removes the current selection. Ctrl+A selects all visible layers, Esc deselects, and Undo reverses edits.
 
@@ -16,12 +16,30 @@ T02 Studio combines text, images, PDF extracts, QR codes and real retail barcode
 
 ## Preview
 
+### Editorial label with QR
+
+![T02 Studio left QR tool flyout, permanent 90-degree rotation toolbar, Art Deco label frame, editorial typography and QR code](docs/screenshots/showcase-art-deco-qr.png)
+
+*Art Deco label, 50 × 80 mm preset, classic typography, custom subtitle and a real QR code. The fixed top toolbar keeps both 90° rotation controls in view while the QR options are open.*
+
+### Product tag with Code 128 barcode
+
+![T02 Studio Code 128 barcode controls, stitched product label, and properties and layers inspector](docs/screenshots/showcase-studio-goods-barcode.png)
+
+*Stitched label with modern type and a generated Code 128 inventory barcode. The barcode is its own selectable, resizable image layer, with exact geometry and layer order visible on the right.*
+
+### Shape palette and clockwise rotation
+
+![T02 Studio shape swatches, 90-degree rotated arrow, and right-hand geometry inspector showing 90 degrees](docs/screenshots/showcase-shape-rotate.png)
+
+*The Shape tool exposes all seven vector presets as one-click choices. Here an outlined arrow is rotated clockwise **90°** with the persistent toolbar controls, then resized and moved independently inside a 50 × 30 mm corner-frame label.*
+
+<details>
+<summary>Earlier Field Notes and free-edit examples</summary>
+
 ![T02 Studio label designer with a 50 x 80 mm Field Notes sample, stacked frames and an editable opacity slider](docs/screenshots/field-notes-editor.png)
 
 *Field Notes showcase: a tall 50 × 80 mm label with a double outer border, independent corners and ticket frames, Georgia/Courier typography, thicker small text, and a 75% opacity layer. The [editable project JSON](examples/field-notes-014.json) and [print-ready PNG](examples/field-notes-014-print.png) are included.*
-
-<details>
-<summary>Original free-edit preview</summary>
 
 ![T02 Studio dark free-edit workspace with a thermal-strip design and layer panel](docs/screenshots/t02-studio-editor.png)
 
@@ -120,7 +138,7 @@ If needed, create a **narrow Windows Firewall inbound rule** for only that PC's 
 - Rectangle marquee, multi-layer move/resize, Shift/Ctrl multi-select, inline layer removal, and undoable bulk deletion.
 - Label designer presets, stackable frame layers, 0–100% layer opacity, and typography controls, with no external font CDN requirement.
 - Adjustable 20–999 mm free canvas, including a draggable bottom paper edge.
-- Rotate blocks left/right by 90°, drag to position, resize, re-order, hide or delete.
+- Rotate selected layers left/right by 90° from the permanent upper toolbar; drag to position, resize, re-order, hide or delete.
 - PDF: text reflow, original fit, tiling, page ranges and bounded multi-segment previews.
 - Optional local OCR for scanned PDFs when Tesseract and language data are installed.
 - Local-only project autosave, JSON import/export, full-resolution PNG export.
