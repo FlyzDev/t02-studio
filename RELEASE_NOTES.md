@@ -1,4 +1,4 @@
-## Unreleased · Middle-mouse workspace pan
+## T02 Studio v0.3.7 · Middle-mouse workspace pan
 
 - Hold the **middle mouse button** and drag anywhere over the gray workbench or the paper to pan the design in both directions. Dragging remains pixel-accurate at different zoom levels, and releasing the button restores normal editing.
 - Panning is a viewport-only action: layers, print output, saved project JSON, Undo/Redo and the existing left-button selection/resize behaviors are unaffected.
