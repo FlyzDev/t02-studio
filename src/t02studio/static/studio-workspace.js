@@ -4,37 +4,22 @@
   const $ = id => document.getElementById(id);
   const rail = document.querySelector('.tool-sidebar');
   const drawer = $('workspace-tool-drawer');
-  const ribbon = $('workspace-inline-ribbon');
   const selectButton = $('ps-rail-select');
   const menuRoots = [...document.querySelectorAll('.workspace-menu')];
   let syncScheduled = false;
 
-  // The same input elements serve every tool, now in a contextual strip below
-  // the permanent toolbar. Moving them preserves their existing event handlers.
-  ribbon.append(drawer);
+  // The fixed left flyout begins below the responsive toolbar, whose height
+  // can grow to multiple rows as the viewport becomes narrower.
+  const toolbar = document.querySelector('.main-area > .top-bar');
+  const syncToolbarHeight = () => document.documentElement.style.setProperty(
+    '--workspace-toolbar-height', `${Math.ceil(toolbar.getBoundingClientRect().height)}px`);
+  new ResizeObserver(syncToolbarHeight).observe(toolbar);
+  window.addEventListener('resize', syncToolbarHeight);
+  syncToolbarHeight();
+
+  // Keep tool controls in the left flyout so resizing the window cannot cause
+  // a wide contextual ribbon to collide with the inspector or canvas.
   $('ps-history-actions').append($('undo'), $('redo'));
-  for (const panel of drawer.querySelectorAll('.tool-panel')) {
-    const oldChildren = [...panel.children];
-    const arranged = document.createDocumentFragment();
-    for (let i = 0; i < oldChildren.length; i++) {
-      const node = oldChildren[i];
-      if (node.matches('.panel-intro, .helper-line')) { arranged.append(node); continue; }
-      const group = document.createElement('div');
-      group.className = 'ribbon-field';
-      const next = oldChildren[i + 1];
-      const labelPair = node.matches('label[for]') && next?.id === node.htmlFor;
-      const rowPair = node.matches('.control-row') && next &&
-        node.querySelector('label[for]')?.htmlFor === next.id;
-      const gridPair = node.matches('.label-field-heading') && next?.matches('.label-size-grid, .label-frame-grid');
-      group.append(node);
-      if (labelPair || rowPair || gridPair) { group.append(next); i++; }
-      if (group.querySelector('textarea, .drop-target')) group.classList.add('ribbon-wide');
-      if (group.querySelector('.label-frame-grid')) group.classList.add('ribbon-frames');
-      if (group.querySelector('.label-size-grid')) group.classList.add('ribbon-sizes');
-      arranged.append(group);
-    }
-    panel.replaceChildren(arranged);
-  }
 
   // Favor immediately visible, single-click choices over small native dropdowns.
   // The original selects remain the single source of truth for studio.js.
@@ -101,7 +86,6 @@
 
   function closeDrawer() {
     rail.classList.remove('drawer-open');
-    ribbon.classList.remove('is-open');
     for (const button of document.querySelectorAll('.tool-tab.active')) button.classList.remove('active');
     selectButton.classList.toggle('active', document.querySelector('#free-select')?.classList.contains('active'));
     scheduleSync();
@@ -110,8 +94,7 @@
   function openDrawer(title, tool) {
     $('workspace-drawer-title').textContent = title;
     rail.classList.add('drawer-open');
-    ribbon.classList.add('is-open');
-    ribbon.dataset.tool = tool;
+    rail.dataset.tool = tool;
     selectButton.classList.remove('active');
     scheduleSync();
   }
@@ -123,7 +106,7 @@
     const count = active.length;
     const placeholder = $('workspace-properties-empty');
     const isText = count === 1 && !$('text-properties').classList.contains('hidden');
-    document.body.classList.toggle('workspace-text-context', isText || (ribbon.classList.contains('is-open') && ribbon.dataset.tool === 'text'));
+    document.body.classList.toggle('workspace-text-context', isText || (rail.classList.contains('drawer-open') && rail.dataset.tool === 'text'));
     placeholder.classList.toggle('hidden', count === 1);
     if (count > 1) {
       $('workspace-properties-message').textContent = `${count} layers selected. Move or resize them together, or use Center on page above the canvas.`;
@@ -332,6 +315,7 @@
     if (!event.target.closest('.workspace-menu')) for (const menu of menuRoots) menu.open = false;
   });
   $('ps-quick-save').addEventListener('click', () => $('save-project').click());
+  $('ps-clear-page').addEventListener('click', () => $('clear-project').click());
   $('ps-length-control').addEventListener('change', () => {
     $('page-height').value = $('ps-length-control').value;
     $('page-height').dispatchEvent(new Event('change', { bubbles: true }));

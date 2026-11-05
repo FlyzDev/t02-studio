@@ -625,10 +625,14 @@ function addItem(item, position = null) {
 
 function addText(text, atPointer = false) {
   if (!text.trim()) throw Error("Enter some text first");
+  const align = $("text-align").value;
+  // A centered text box must itself be centered on the paper. The previous
+  // 290 px free-layout box started at x=16, placing its center 31 px left.
+  const centeredOnPaper = work.mode === "free" && align === "center" && !atPointer;
   const item = { type: "text", name: text.trim().slice(0, 34), text, fontSize: Number($("font-size").value),
-    fontFamily: $("text-font-family").value, align: $("text-align").value, bold: $("text-bold").checked,
+    fontFamily: $("text-font-family").value, align, bold: $("text-bold").checked,
     inkThickness: normalizeTextThickness($("text-ink-thickness").value),
-    w: work.mode === "free" ? 290 : 352, h: 50 };
+    w: work.mode === "free" ? (centeredOnPaper ? PAPER_WIDTH - 32 : 290) : 352, h: 50 };
   item.h = requiredTextHeight(item);
   if (atPointer) work.pointer = atPointer;
   addItem(item, atPointer || null);

@@ -1,3 +1,10 @@
+## T02 Studio v0.3.6 · Responsive left tools and centered text
+
+- The contextual tools are back in a vertical **left flyout**. Visible Shape, Border and other single-click option palettes now wrap into narrow columns, keeping the tools usable when the window shrinks.
+- The permanent top toolbar wraps onto two or three rows at smaller widths. The flyout follows its measured height, begins directly beneath it, and never covers those actions. The paper and right inspector remain stable when opening and closing tools.
+- **Clear page** is visible again in the top-right app bar. It uses the existing confirmation, history and Undo behavior, so saved projects are not deleted.
+- Newly inserted center-aligned Free edit text uses a full-width centered box instead of starting 31 px left of the paper center. Pointer-positioned text keeps its existing placement.
+
 ## T02 Studio v0.3.5 · Visible tool palettes
 
 - Shape and Border choices now appear as always-visible pictogram cards above the canvas. Text alignment, PDF conversion, barcode format and date/time formats likewise use direct, labeled choices instead of dropdown menus.
