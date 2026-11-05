@@ -124,8 +124,10 @@ const canvasStart = workspaceMarkup.indexOf('id="canvas-stage"');
 const inspectorStart = workspaceMarkup.indexOf('class="layers-panel"');
 assert.ok(workareaStart < ribbonStart && ribbonStart < canvasStart && canvasStart < inspectorStart,
   'Context ribbon must be in the canvas column with the inspector as its grid sibling');
-assert.ok(workspaceCss.includes('grid-row: 1 / 3'), 'Inspector should span both canvas rows');
-assert.ok(workspaceCss.includes('grid-template-rows: auto minmax(0,1fr)'), 'Ribbon must not shift inspector');
+assert.ok(workspaceCss.includes('position: absolute; z-index: 15; top: 0; left: 0'), 'Ribbon must overlay, not shift canvas');
+assert.ok(workspaceCss.includes('grid-template-rows: minmax(0,1fr)'), 'Canvas must have a stable row');
+assert.ok(workspaceCss.includes('grid-column: 2; grid-row: 1'), 'Inspector must remain independent of contextual ribbon');
+assert.ok(workspaceCss.includes('grid-template-rows: 130px 64px'), 'Label designer should fit into two compact overlay rows');
 assert.ok(workspaceCss.includes('transform: translate(-50%,-50%)'), 'Tool pictograms must be centered independently of hidden text');
 for (const name of ['select', 'text', 'image', 'pdf', 'qr', 'barcode', 'address', 'datetime', 'shape', 'border', 'label']) {
   assert.ok(workspaceMarkup.includes(`id="rail-icon-${name}"`), `Missing consistent ${name} vector icon`);

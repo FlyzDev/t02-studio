@@ -70,26 +70,35 @@ html[data-theme] .tool-tab.active, .ps-rail-select.active { background: #638ce12
 .workspace-tool-drawer .sidebar-note { display: none; }
 .workspace-tool-drawer .sidebar-bottom { margin-top: 28px; padding-top: 16px; border-top: 1px solid var(--workspace-border); }
 
-/* Two horizontal chrome strips become one compact contextual toolbar. */
+/* Fixed application bar and an overlay ribbon: neither the canvas nor inspector moves. */
 html[data-theme] .main-area { grid-area: 2 / 2 / 3 / 3; height: auto; min-height: 0; background: var(--workspace-canvas); }
 html[data-theme] .main-area > .top-bar { position: relative; z-index: 16; min-height: 50px; padding: 0 18px; gap: 16px; flex-wrap: nowrap; background: var(--workspace-options); border-color: var(--workspace-border); }
-.workspace-inline-ribbon { display: none; grid-column: 1; grid-row: 1; width: 100%; min-width: 0; overflow: hidden; background: var(--workspace-panel); border-bottom: 1px solid var(--workspace-border); }
+.workspace-inline-ribbon { display: none; position: absolute; z-index: 15; top: 0; left: 0; right: var(--workspace-inspector-width, 252px); min-width: 0; overflow: hidden; background: var(--workspace-panel); border: 1px solid var(--workspace-border); border-top: 0; border-left: 0; border-radius: 0 0 9px 0; box-shadow: 0 16px 26px #0007; }
 .workspace-inline-ribbon.is-open { display: block; }
-.workspace-inline-ribbon .workspace-tool-drawer { display: flex; position: static; flex-direction: column; width: 100%; height: auto; max-height: 184px; padding: 4px 15px 10px; overflow: hidden; box-shadow: none; border: 0; }
-.workspace-inline-ribbon .workspace-drawer-heading { flex: none; height: 27px; margin: 0 0 5px; border: 0; font-size: 11px; }
-.workspace-inline-ribbon .workspace-drawer-heading button { font-size: 18px; padding: 0 7px; }
-.workspace-inline-ribbon .tool-panel { display: flex; flex: none; align-items: end; gap: 10px; min-width: 0; overflow-x: auto; overflow-y: hidden; padding: 0 0 7px; margin: 0; scrollbar-width: thin; scrollbar-color: #606a7a transparent; }
+.workspace-inline-ribbon .workspace-tool-drawer { display: flex; position: static; flex-direction: column; width: 100%; height: auto; max-height: 190px; padding: 9px 14px 13px; overflow: hidden; box-shadow: none; border: 0; }
+.workspace-inline-ribbon .workspace-drawer-heading { flex: none; height: 25px; margin: 0 0 10px; border: 0; font-size: 12px; letter-spacing: -.2px; }
+.workspace-inline-ribbon .workspace-drawer-heading button { font-size: 19px; padding: 2px 7px; border-radius: 5px; }
+.workspace-inline-ribbon .workspace-drawer-heading button:hover { background: #7489a42b; }
+.workspace-inline-ribbon .tool-panel { display: flex; flex: none; align-items: stretch; gap: 12px; min-width: 0; overflow-x: auto; overflow-y: hidden; padding: 0 0 8px; margin: 0; scrollbar-width: thin; scrollbar-color: #74829a55 transparent; }
 .workspace-inline-ribbon .tool-panel.hidden { display: none !important; }
 .workspace-inline-ribbon .tool-panel .panel-intro, .workspace-inline-ribbon .tool-panel .helper-line { display: none; }
-.workspace-inline-ribbon .ribbon-field { display: flex; flex: none; flex-direction: column; justify-content: end; gap: 4px; min-width: 128px; width: 160px; max-height: 124px; }
-.workspace-inline-ribbon .ribbon-field.ribbon-wide { width: 235px; }
-.workspace-inline-ribbon .ribbon-field.ribbon-frames { width: 420px; }
-.workspace-inline-ribbon .ribbon-field.ribbon-sizes { width: 300px; }
-.workspace-inline-ribbon .ribbon-field > label:not(.check-row), .workspace-inline-ribbon .ribbon-field .control-row label { color: var(--workspace-muted); margin: 0; font-size: 10px; }
-.workspace-inline-ribbon .ribbon-field input:not([type=checkbox]):not([type=range]), .workspace-inline-ribbon .ribbon-field select, .workspace-inline-ribbon .ribbon-field textarea { width: 100%; padding: 6px 8px; min-height: 32px; font-size: 11px; }
-.workspace-inline-ribbon .ribbon-field textarea { height: 58px; min-height: 58px; resize: vertical; }
-.workspace-inline-ribbon .ribbon-field input[type=range] { margin: 6px 0; }
+.workspace-inline-ribbon .ribbon-field { display: flex; flex: none; flex-direction: column; justify-content: flex-end; gap: 7px; width: 144px; min-width: 0; min-height: 85px; max-height: 126px; }
+.workspace-inline-ribbon .ribbon-field.ribbon-wide { width: 212px; }
+.workspace-inline-ribbon .ribbon-field.ribbon-frames { width: 360px; }
+.workspace-inline-ribbon .ribbon-field.ribbon-sizes { width: 260px; }
+.workspace-inline-ribbon .ribbon-field:has(> .check-row) { width: 108px; }
+.workspace-inline-ribbon .ribbon-field:has(> .add-button), .workspace-inline-ribbon .ribbon-field:has(> .label-add-frame) { width: 130px; }
+.workspace-inline-ribbon .ribbon-field:has(> .control-row select) { width: 138px; }
+.workspace-inline-ribbon .ribbon-field:has(> label[for="text-font-family"]), .workspace-inline-ribbon .ribbon-field:has(> label[for="label-font"]) { width: 164px; }
+.workspace-inline-ribbon .ribbon-field > label:not(.check-row), .workspace-inline-ribbon .ribbon-field .control-row label, .workspace-inline-ribbon .ribbon-field .thickness-heading label { color: var(--workspace-muted); margin: 0; font-size: 10px; font-weight: 680; letter-spacing: .15px; }
+.workspace-inline-ribbon .ribbon-field input:not([type=checkbox]):not([type=range]), .workspace-inline-ribbon .ribbon-field select, .workspace-inline-ribbon .ribbon-field textarea { width: 100%; min-height: 35px; padding: 7px 9px; border: 1px solid #465060; border-radius: 6px; background: #191e26; color: var(--workspace-text); font-size: 11px; }
+.workspace-inline-ribbon .ribbon-field textarea { height: 62px; min-height: 62px; resize: vertical; }
+.workspace-inline-ribbon .ribbon-field input[type=range] { margin: 6px 0; accent-color: var(--workspace-accent); }
 .workspace-inline-ribbon .ribbon-field .control-row { margin: 0; }
+.workspace-inline-ribbon .ribbon-field > .control-row:has(select) { display: flex; flex-direction: column; align-items: stretch; gap: 7px; }
+.workspace-inline-ribbon .ribbon-field > .control-row select { width: 100%; }
+.workspace-inline-ribbon .ribbon-field > .check-row { display: flex; align-items: center; gap: 6px; margin: 0 0 3px; padding: 9px 8px; min-height: 35px; border: 1px solid #465060; border-radius: 6px; background: #313842; color: var(--workspace-text); white-space: nowrap; font-size: 10px; }
+.workspace-inline-ribbon .ribbon-field:has(> .add-button)::before { content: "INSERT"; color: var(--workspace-muted); font-size: 10px; font-weight: 720; letter-spacing: .55px; }
 .workspace-inline-ribbon .ribbon-field .thickness-control { margin: 0; padding: 0; border: 0; }
 .workspace-inline-ribbon .ribbon-field .thickness-control small { display: none; }
 .workspace-inline-ribbon .ribbon-field .label-size-grid, .workspace-inline-ribbon .ribbon-field .label-frame-grid { margin: 0; }
@@ -102,7 +111,29 @@ html[data-theme] .main-area > .top-bar { position: relative; z-index: 16; min-he
 .workspace-inline-ribbon .ribbon-field .drop-target { min-height: 72px; padding: 9px; }
 .workspace-inline-ribbon .ribbon-field .drop-target .upload-symbol { display: none; }
 .workspace-inline-ribbon .ribbon-field .drop-target small { font-size: 10px; }
-.workspace-inline-ribbon .ribbon-field .add-button, .workspace-inline-ribbon .ribbon-field .label-add-frame { width: 100%; min-height: 35px; padding: 7px 10px; margin: 0; }
+.workspace-inline-ribbon .ribbon-field .add-button, .workspace-inline-ribbon .ribbon-field .label-add-frame { width: 100%; min-height: 35px; padding: 7px 10px; margin: 0; border-radius: 6px; }
+/* Label designer needs two deliberate rows; its individual frame swatches scroll,
+   but the entire workspace and inspector never move or acquire a nested scrollbar. */
+.workspace-inline-ribbon[data-tool="label"] .workspace-tool-drawer { max-height: 290px; }
+.workspace-inline-ribbon .tool-panel[data-panel="label"] {
+  display: grid; grid-template-columns: repeat(12, minmax(0, 1fr));
+  grid-template-rows: 130px 64px; gap: 11px 12px;
+  overflow-x: hidden; overflow-y: auto; padding-bottom: 4px;
+}
+.workspace-inline-ribbon .tool-panel[data-panel="label"] .ribbon-field {
+  width: auto; max-height: none; min-height: 0; height: 100%; gap: 6px;
+}
+.workspace-inline-ribbon .tool-panel[data-panel="label"] .ribbon-field:has(.label-size-grid) { grid-column: span 3; }
+.workspace-inline-ribbon .tool-panel[data-panel="label"] .ribbon-field:has(.label-frame-grid) { grid-column: span 5; }
+.workspace-inline-ribbon .tool-panel[data-panel="label"] .ribbon-field:has(#label-frame-width),
+.workspace-inline-ribbon .tool-panel[data-panel="label"] .ribbon-field:has(> .label-add-frame) { grid-column: span 2; }
+.workspace-inline-ribbon .tool-panel[data-panel="label"] .ribbon-field:has(#label-font) { grid-column: span 2; }
+.workspace-inline-ribbon .tool-panel[data-panel="label"] .ribbon-field:has(#label-title),
+.workspace-inline-ribbon .tool-panel[data-panel="label"] .ribbon-field:has(#label-subtitle) { grid-column: span 4; }
+.workspace-inline-ribbon .tool-panel[data-panel="label"] .ribbon-field:has(#create-label) { grid-column: span 2; }
+.workspace-inline-ribbon .tool-panel[data-panel="label"] .label-size-card { min-width: 0; }
+.workspace-inline-ribbon .tool-panel[data-panel="label"] .label-frame-grid { scrollbar-width: thin; scrollbar-color: #75819888 transparent; }
+.workspace-inline-ribbon .tool-panel[data-panel="label"] .label-add-frame { min-height: 48px; line-height: 1.3; }
 .workspace-inline-ribbon .workspace-tool-drawer .sidebar-bottom { display: none; }
 .workspace-inline-ribbon[data-tool="printer"] .tool-panel { display: none !important; }
 .workspace-inline-ribbon[data-tool="printer"] .workspace-tool-drawer .sidebar-bottom { display: flex; align-items: center; gap: 14px; margin: 0; padding: 0; border: 0; }
@@ -151,9 +182,9 @@ html[data-theme] .mode-switch { border-color: var(--workspace-border); backgroun
 html[data-theme] .mode-switch button { padding: 6px 10px; color: #acb1b9; }
 html[data-theme] .mode-switch button.active { background: #40454f; color: #fff; }
 .main-area > .edit-toolbar, .main-area > .free-toolbar { display: none !important; }
-/* The ribbon only occupies the canvas column. Inspector stays pinned below the fixed toolbar. */
-html[data-theme] .content-area { display: grid; grid-template-columns: minmax(0,1fr) 252px; grid-template-rows: auto minmax(0,1fr); }
-html[data-theme] .canvas-stage { grid-column: 1; grid-row: 2; min-height: 0; align-items: safe center; padding: 23px 20px 31px; background: var(--workspace-canvas); scrollbar-color: #484b50 transparent; }
+/* The ribbon is an overlay within the canvas column, not a layout row. */
+html[data-theme] .content-area { --workspace-inspector-width: 252px; position: relative; display: grid; grid-template-columns: minmax(0,1fr) var(--workspace-inspector-width); grid-template-rows: minmax(0,1fr); }
+html[data-theme] .canvas-stage { grid-column: 1; grid-row: 1; min-height: 0; align-items: safe center; padding: 23px 20px 31px; background: var(--workspace-canvas); scrollbar-color: #484b50 transparent; }
 .canvas-stage .stage-caption { display: none; }
 .canvas-stage .paper-surround { zoom: var(--workspace-zoom, .75); }
 .canvas-stage .paper-heading { display: none; }
@@ -163,7 +194,7 @@ html[data-theme] .canvas-stage { grid-column: 1; grid-row: 2; min-height: 0; ali
 .canvas-stage .paper-hint { margin: 10px 0; }
 
 /* Properties live above the layer stack, like a conventional graphics editor. */
-html[data-theme] .layers-panel { display: flex; grid-column: 2; grid-row: 1 / 3; flex-direction: column; min-height: 0; padding: 0; overflow: hidden; border-color: var(--workspace-border); background: var(--workspace-panel); }
+html[data-theme] .layers-panel { display: flex; grid-column: 2; grid-row: 1; flex-direction: column; min-height: 0; padding: 0; overflow: hidden; border-color: var(--workspace-border); background: var(--workspace-panel); }
 .layers-panel #selection-properties { order: 1; min-height: 0; max-height: 46%; overflow-y: auto; margin: 0; padding: 15px 13px; border: 0; border-bottom: 1px solid var(--workspace-border); scrollbar-color: #575c63 transparent; }
 .layers-panel .workspace-properties-empty { order: 1; display: flex; flex-direction: column; gap: 10px; min-height: 140px; padding: 16px 13px; border-bottom: 1px solid var(--workspace-border); font-size: 11px; color: var(--workspace-muted); }
 .workspace-properties-empty h3 { font-size: 13px; margin: 0; color: var(--workspace-text); }
@@ -206,6 +237,9 @@ html[data-theme] .footer-actions .print-button { min-width: 88px; justify-conten
 html[data-theme] .footer-actions .print-button:hover:not(:disabled) { background: #178b50; color: #fff; }
 
 html[data-theme="light"] .workspace-options > button { background: #dce0e6; color: #2b3441; }
+html[data-theme="light"] .workspace-inline-ribbon { box-shadow: 0 12px 24px #31465c2d; }
+html[data-theme="light"] .workspace-inline-ribbon .ribbon-field input:not([type=checkbox]):not([type=range]), html[data-theme="light"] .workspace-inline-ribbon .ribbon-field select, html[data-theme="light"] .workspace-inline-ribbon .ribbon-field textarea { background: #fff; border-color: #cbd3df; color: #273342; }
+html[data-theme="light"] .workspace-inline-ribbon .ribbon-field > .check-row { background: #e9edf3; border-color: #cbd3df; color: #273342; }
 html[data-theme="light"] .workspace-history-actions button { background: #dfe3e9; }
 html[data-theme="light"] .workspace-options .workspace-tool-caption { color: var(--workspace-accent); background: transparent; }
 html[data-theme="light"] .workspace-option-chip { background: #dfe3e9; color: #596370; }
@@ -226,9 +260,13 @@ html[data-theme="light"] .mode-switch button.active { color: #24314b; background
   .workspace-options .workspace-option-chip { display: none; }
   .workspace-options .workspace-center-button { padding: 5px 6px; }
   .workspace-length-control { display: none; }
-  html[data-theme] .content-area { grid-template-columns: minmax(0,1fr) 216px; }
+  html[data-theme] .content-area { --workspace-inspector-width: 216px; }
   .layers-panel #selection-properties { max-height: 40%; }
   .workspace-status > span:last-child { display: none; }
+  .workspace-inline-ribbon .tool-panel[data-panel="label"] { display: flex; overflow-x: auto; overflow-y: hidden; }
+  .workspace-inline-ribbon .tool-panel[data-panel="label"] .ribbon-field { flex: none; width: 160px; }
+  .workspace-inline-ribbon .tool-panel[data-panel="label"] .ribbon-field:has(.label-size-grid) { width: 255px; }
+  .workspace-inline-ribbon .tool-panel[data-panel="label"] .ribbon-field:has(.label-frame-grid) { width: 370px; }
 }
 @media (max-width: 620px) {
   .studio-shell { grid-template-columns: 56px minmax(0,1fr); }
@@ -242,7 +280,7 @@ html[data-theme="light"] .mode-switch button.active { color: #24314b; background
   html[data-theme] .tool-tab, .ps-rail-select { width: 42px; }
   .workspace-tool-drawer { left: 56px; width: min(300px, calc(100vw - 60px)); }
   .workspace-inline-ribbon .workspace-tool-drawer { width: 100%; padding: 5px 9px 9px; }
-  html[data-theme] .content-area { grid-template-columns: minmax(0,1fr); }
+  html[data-theme] .content-area { --workspace-inspector-width: 0px; }
   html[data-theme] .layers-panel { display: none; }
   .workspace-options { gap: 4px; }
   .top-bar .mode-switch button { padding: 6px; }

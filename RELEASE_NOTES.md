@@ -1,6 +1,7 @@
 ## T02 Studio v0.3.4 · Stable inspector and unified tool icons
 
-- The contextual ribbon now lives **only over the canvas column**. Opening or closing Text, Image, Border or Label designer never pushes the right-hand Properties/Layers panel down; the inspector stays pinned beneath the fixed toolbar.
+- The contextual ribbon now **overlays the top of the canvas column** rather than taking up space. Opening or closing Text, Image, Border or Label designer never shifts the paper or the right-hand Properties/Layers panel; the inspector stays pinned beneath the fixed toolbar.
+- Ribbon controls now form aligned groups with consistent labels, field heights, restrained spacing, polished scroll treatment and a clear primary Insert action. Label Designer uses two composed rows, with its frame styles scrolling independently when needed.
 - Every left-rail tool now uses a consistent 22 px vector pictogram rather than a mixture of font glyphs. Icons and their 46 px clickable targets are truly centered in the rail, with accessible names and tooltips intact.
 - Existing layer selection, saved designs, printer port, and the independent border/opacity/Undo features remain unchanged.
 
