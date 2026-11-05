@@ -36,6 +36,69 @@
     panel.replaceChildren(arranged);
   }
 
+  // Favor immediately visible, single-click choices over small native dropdowns.
+  // The original selects remain the single source of truth for studio.js.
+  const choiceControls = {
+    'shape-kind': 'shape',
+    'border-style': 'frame',
+    'text-align': 'simple',
+    'pdf-mode': 'simple',
+    'barcode-type': 'simple',
+    'datetime-format': 'simple',
+  };
+  const visualChoiceGroups = [];
+  for (const [id, kind] of Object.entries(choiceControls)) {
+    const select = $(id);
+    if (!select) continue;
+    const group = document.createElement('div');
+    group.className = `ribbon-choices ribbon-choices-${kind}`;
+    group.setAttribute('role', 'group');
+    group.setAttribute('aria-label', select.previousElementSibling?.textContent?.trim() || 'Choose an option');
+    const buttons = [];
+    for (const option of select.options) {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'ribbon-choice';
+      button.dataset.value = option.value;
+      button.setAttribute('aria-label', option.textContent.trim());
+      if (kind === 'shape') {
+        const icon = document.createElement('span');
+        icon.className = `ribbon-shape-symbol ribbon-shape-${option.value}`;
+        icon.setAttribute('aria-hidden', 'true');
+        button.append(icon);
+      } else if (kind === 'frame') {
+        const icon = document.createElement('span');
+        icon.className = `frame-sample frame-${option.value}`;
+        icon.setAttribute('aria-hidden', 'true');
+        button.append(icon);
+      }
+      const title = document.createElement('span');
+      title.className = 'ribbon-choice-label';
+      title.textContent = option.textContent.split(' · ')[0].trim();
+      button.append(title);
+      button.addEventListener('click', () => {
+        select.value = option.value;
+        select.dispatchEvent(new Event('change', { bubbles: true }));
+      });
+      group.append(button);
+      buttons.push(button);
+    }
+    select.after(group);
+    select.classList.add('ribbon-choice-native');
+    select.setAttribute('aria-hidden', 'true');
+    select.tabIndex = -1;
+    const sync = () => {
+      for (const button of buttons) {
+        const active = button.dataset.value === select.value;
+        button.classList.toggle('active', active);
+        button.setAttribute('aria-pressed', String(active));
+      }
+    };
+    select.addEventListener('change', sync);
+    visualChoiceGroups.push(sync);
+    sync();
+  }
+
   function closeDrawer() {
     rail.classList.remove('drawer-open');
     ribbon.classList.remove('is-open');
@@ -55,6 +118,7 @@
 
   function syncChrome() {
     syncScheduled = false;
+    for (const sync of visualChoiceGroups) sync();
     const active = [...document.querySelectorAll('.layer-item.active')];
     const count = active.length;
     const placeholder = $('workspace-properties-empty');

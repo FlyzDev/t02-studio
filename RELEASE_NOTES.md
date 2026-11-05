@@ -1,3 +1,9 @@
+## T02 Studio v0.3.5 · Visible tool palettes
+
+- Shape and Border choices now appear as always-visible pictogram cards above the canvas. Text alignment, PDF conversion, barcode format and date/time formats likewise use direct, labeled choices instead of dropdown menus.
+- Label Designer displays all eleven frame styles without a horizontal scroll on wide screens; narrow windows keep a compact swatch scroller.
+- Longer checkboxes have legible room, selection states are visibly highlighted and accessible, and the fixed canvas/Properties layout remains unchanged.
+
 ## T02 Studio v0.3.4 · Stable inspector and unified tool icons
 
 - The contextual ribbon now **overlays the top of the canvas column** rather than taking up space. Opening or closing Text, Image, Border or Label designer never shifts the paper or the right-hand Properties/Layers panel; the inspector stays pinned beneath the fixed toolbar.

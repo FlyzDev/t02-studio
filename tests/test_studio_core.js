@@ -128,6 +128,11 @@ assert.ok(workspaceCss.includes('position: absolute; z-index: 15; top: 0; left: 
 assert.ok(workspaceCss.includes('grid-template-rows: minmax(0,1fr)'), 'Canvas must have a stable row');
 assert.ok(workspaceCss.includes('grid-column: 2; grid-row: 1'), 'Inspector must remain independent of contextual ribbon');
 assert.ok(workspaceCss.includes('grid-template-rows: 130px 64px'), 'Label designer should fit into two compact overlay rows');
+assert.ok(workspaceCss.includes('grid-template-columns: repeat(11, minmax(0,1fr))'), 'All label frame options should be visible in the wide ribbon');
+for (const id of ['shape-kind', 'border-style', 'text-align', 'pdf-mode', 'barcode-type', 'datetime-format']) {
+  assert.ok(workspaceJs.includes(`'${id}':`), `Missing ${id} direct-choice palette`);
+}
+assert.ok(workspaceJs.includes("select.dispatchEvent(new Event('change', { bubbles: true }))"), 'Visual choices must update native source of truth');
 assert.ok(workspaceCss.includes('transform: translate(-50%,-50%)'), 'Tool pictograms must be centered independently of hidden text');
 for (const name of ['select', 'text', 'image', 'pdf', 'qr', 'barcode', 'address', 'datetime', 'shape', 'border', 'label']) {
   assert.ok(workspaceMarkup.includes(`id="rail-icon-${name}"`), `Missing consistent ${name} vector icon`);
