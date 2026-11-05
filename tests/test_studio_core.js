@@ -126,4 +126,15 @@ assert.ok(source.includes('operation: "marquee"'));
 assert.ok(source.includes('className = "layer-delete"'));
 assert.ok(source.includes('transformSelection(originals, work.drag.operation'));
 assert.ok(!markup.includes('id="delete-selected"'), 'Single toolbar delete should be replaced with inline layer actions');
+const workspace = fs.readFileSync(path.join(__dirname, '../src/t02studio/templates/studio_alt.html'), 'utf8');
+for (const id of ['ps-rail-select', 'workspace-tool-drawer', 'workspace-drawer-close',
+  'ps-zoom', 'ps-quick-save', 'ps-printer-toggle', 'ps-length-control']) {
+  assert.ok(workspace.includes(`id="${id}"`), `Missing new workspace control ${id}`);
+}
+for (const menu of ['File', 'Edit', 'View', 'Layer']) {
+  assert.ok(workspace.includes(`<summary>${menu}</summary>`), `Missing workspace menu ${menu}`);
+}
+assert.ok(workspace.includes('/static/studio-workspace.css'));
+assert.ok(workspace.includes('/static/studio-workspace.js'));
+assert.ok(!markup.includes('studio-workspace.css'), 'Legacy composer must remain unchanged');
 console.log('studio core tests OK');

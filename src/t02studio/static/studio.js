@@ -7,8 +7,8 @@ const { PAPER_WIDTH, MAX_HEIGHT, LABEL_SIZES, LABEL_FRAMES, FRAME_NAMES, SHAPE_N
 const canvas = $("composition-canvas");
 const ctx = canvas.getContext("2d", { alpha: false });
 const work = {
-  mode: "flow", tool: "text", freeTool: "select", items: [], selectedId: null, selectedIds: [],
-  pageHeight: mmToPx(150), busy: false, drag: null, inlineId: null,
+  mode: "free", tool: "text", freeTool: "select", items: [], selectedId: null, selectedIds: [],
+  pageHeight: mmToPx(80), busy: false, drag: null, inlineId: null,
   paperDrag: null,
   history: [], future: [], imageFile: null, pdfFile: null, pdfSegment: 0,
   pdfTotal: 1, toastTimer: null, draftTimer: null, pointer: { x: 24, y: 24 },

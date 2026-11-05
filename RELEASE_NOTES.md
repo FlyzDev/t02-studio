@@ -1,3 +1,10 @@
+## T02 Studio v0.3.0 · Graphics-editor workspace
+
+- **Rebuilt application shell:** File / Edit / View / Layer menus, a narrow left tool rail, an open central thermal-paper canvas, and a right inspector with Properties above Layers. This replaces the long three-column sidebar on `/` and `/alt`.
+- **Contextual tools:** Text, Image, PDF, QR, Barcode, Address, Date/time, Shape, Border and Label designer open an overlaid options drawer. The cursor selects layers, and the canvas stays visible.
+- **Compact controls:** paper length and layout mode at the top; zoom, PNG download and Print in the bottom status bar. Quick actions include V (select), T (text) and Ctrl+S (save).
+- **Existing editing preserved:** box selection, Shift/Ctrl multi-select, moving/resizing groups, each layer's own × delete, undo/redo, saved JSON designs, printer discovery and print path are preserved. Legacy editor remains accessible.
+
 ## T02 Studio v0.2.1 · Multi-layer selection
 
 - **Desktop-style box selection:** in Free edit, use Select / box-select and drag across empty paper to select multiple overlapping layers. Drag in either direction.

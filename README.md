@@ -8,6 +8,8 @@ T02 Studio is an independent community project and is **not affiliated with or e
 
 T02 Studio combines text, images, PDF extracts, QR codes and real retail barcodes into one 384-dot-wide strip. Its free-layout editor supports dragging, resizing, 90° rotation, an adjustable paper edge, paste-to-add images, shapes, borders, layers, project JSON and PNG export.
 
+**Graphics-editor workspace:** the main editor now has a compact File / Edit / View / Layer menu, a vertical selection and component tool rail, an unobstructed central canvas, and a right-hand Properties / Layers inspector. Choose a tool to open its options in a temporary drawer; selecting the canvas closes the drawer. The bottom status bar contains zoom, PNG export, and Print. Shortcuts: **V** selects, **T** opens text, **Ctrl+S** saves. Older locally saved designs remain compatible. The Classic and legacy composer views are still available.
+
 **Multi-layer selection:** in **Free edit**, choose **Select / box-select** and drag over an empty area of the paper to draw a selection rectangle, just like selecting desktop icons. Drag any selected element to move the selection together, or drag the group's bottom-right corner to resize all selected layers. Shift-click elements on the canvas, or Ctrl/Shift-click rows in the Layers panel to add/remove them from the selection. Each layer has its own `×` delete button; Delete/Backspace removes the current selection. Ctrl+A selects all visible layers, Esc deselects, and Undo reverses edits.
 
 ## Preview
@@ -29,7 +31,7 @@ T02 Studio combines text, images, PDF extracts, QR codes and real retail barcode
 
 | Route | Purpose |
 | --- | --- |
-| `/` and `/alt` | Main three-column English editor, **dark by default**, light-mode toggle |
+| `/` and `/alt` | Main Photoshop-inspired workspace: menu bar, compact tool rail, central canvas, Properties / Layers inspector, **dark by default** |
 | `/composer` | Legacy full receipt composer |
 | `/classic` | Legacy one-item-at-a-time editor |
 
@@ -37,7 +39,7 @@ All three interfaces use the same local backend. The alternate design is native 
 
 ## Label designer
 
-Open **Label designer** from the left sidebar to start with a ready-to-edit label:
+Open **Label designer** from the left tool rail to start with a ready-to-edit label:
 
 - Three presets: **50 × 30**, **50 × 50**, and **50 × 80 mm**.
 - Eleven monochrome frame choices: no frame, rounded, double, stitched, corners, classic, dotted, scalloped, ticket, Art Deco, and wavy.
