@@ -118,6 +118,18 @@ assert.ok(workspaceMarkup.includes('id="workspace-inline-ribbon"'));
 assert.ok(workspaceMarkup.includes('id="ps-history-actions"'));
 assert.ok(workspaceJs.includes("$('ps-history-actions').append($('undo'), $('redo'))"));
 assert.ok(workspaceCss.includes('.workspace-inline-ribbon.is-open'));
+const workareaStart = workspaceMarkup.indexOf('<div class="content-area">');
+const ribbonStart = workspaceMarkup.indexOf('id="workspace-inline-ribbon"');
+const canvasStart = workspaceMarkup.indexOf('id="canvas-stage"');
+const inspectorStart = workspaceMarkup.indexOf('class="layers-panel"');
+assert.ok(workareaStart < ribbonStart && ribbonStart < canvasStart && canvasStart < inspectorStart,
+  'Context ribbon must be in the canvas column with the inspector as its grid sibling');
+assert.ok(workspaceCss.includes('grid-row: 1 / 3'), 'Inspector should span both canvas rows');
+assert.ok(workspaceCss.includes('grid-template-rows: auto minmax(0,1fr)'), 'Ribbon must not shift inspector');
+for (const name of ['select', 'text', 'image', 'pdf', 'qr', 'barcode', 'address', 'datetime', 'shape', 'border', 'label']) {
+  assert.ok(workspaceMarkup.includes(`id="rail-icon-${name}"`), `Missing consistent ${name} vector icon`);
+  assert.ok(workspaceMarkup.includes(`href="#rail-icon-${name}"`), `Tool ${name} not using its vector icon`);
+}
 assert.ok(source.includes('operation: "shift-pending"'));
 assert.ok(source.includes('advanceDragTranslation(work.drag.translation'));
 assert.ok(source.includes('addFrameLayer($("border-style").value, $("border-width").value)'));
