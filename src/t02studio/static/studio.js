@@ -456,9 +456,42 @@ function updateLayers() {
     const row = document.createElement("div");
     row.className = "layer-item" + (work.selectedIds.includes(item.id) ? " active" : "");
     row.title = "Click to select · Drag to reorder · Ctrl/Shift-click to multi-select";
+    row.dataset.layerId = item.id;
     row.draggable = true;
     const grip = document.createElement("span"); grip.className = "layer-grip";
     grip.textContent = "⠿"; grip.title = "Drag to reorder this layer";
+    grip.addEventListener("click", event => event.stopPropagation());
+    grip.addEventListener("pointerdown", event => {
+      if (event.button !== 0) return;
+      event.preventDefault(); event.stopPropagation();
+      work.pointerLayerReorder = { id: item.id, targetId: null, before: true };
+      grip.setPointerCapture(event.pointerId);
+      row.classList.add("dragging");
+    });
+    grip.addEventListener("pointermove", event => {
+      if (!work.pointerLayerReorder || !grip.hasPointerCapture(event.pointerId)) return;
+      document.querySelectorAll(".layer-item").forEach(element => element.classList.remove("drop-before", "drop-after"));
+      const targetRow = document.elementFromPoint(event.clientX, event.clientY)?.closest(".layer-item");
+      const targetId = targetRow?.dataset.layerId;
+      if (!targetId || targetId === item.id) {
+        work.pointerLayerReorder.targetId = null;
+        return;
+      }
+      const before = event.clientY < targetRow.getBoundingClientRect().top + targetRow.offsetHeight / 2;
+      targetRow.classList.add(before ? "drop-before" : "drop-after");
+      work.pointerLayerReorder.targetId = targetId;
+      work.pointerLayerReorder.before = before;
+    });
+    const finishGripReorder = event => {
+      if (!work.pointerLayerReorder || !grip.hasPointerCapture(event.pointerId)) return;
+      const { id, targetId, before } = work.pointerLayerReorder;
+      work.pointerLayerReorder = null;
+      grip.releasePointerCapture(event.pointerId);
+      document.querySelectorAll(".layer-item").forEach(element => element.classList.remove("dragging", "drop-before", "drop-after"));
+      if (targetId && event.type === "pointerup") reorderLayer(id, targetId, before);
+    };
+    grip.addEventListener("pointerup", finishGripReorder);
+    grip.addEventListener("pointercancel", finishGripReorder);
     const symbol = document.createElement("span"); symbol.className = "layer-symbol";
     symbol.textContent = ({ text: "T", frame: "▣", shape: "◇", image: "▧" })[item.type];
     const names = document.createElement("div"); names.className = "layer-text";

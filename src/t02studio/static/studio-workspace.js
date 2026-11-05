@@ -182,6 +182,7 @@
   $('printer-select').addEventListener('change', scheduleSync);
   document.querySelectorAll('[data-mode], .tool-panel input, .tool-panel select, #selection-properties input, #selection-properties select').forEach(element => element.addEventListener('change', scheduleSync));
   document.querySelectorAll('[data-mode]').forEach(element => element.addEventListener('click', scheduleSync));
+  for (const button of document.querySelectorAll('.tool-tab.active')) button.classList.remove('active');
   selectButton.classList.add('active');
   scheduleSync();
 })();
