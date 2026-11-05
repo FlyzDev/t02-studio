@@ -58,7 +58,7 @@ html[data-theme] .tool-tab.active, .ps-rail-select.active { background: #638ce12
 .ps-rail-select { margin-bottom: 10px !important; }
 .ps-rail-select::after { content: ""; position: absolute; width: 30px; bottom: -7px; height: 1px; background: var(--workspace-border); }
 .tool-tab .tab-number { display: none; }
-.tool-tab .rail-icon, .ps-rail-select .rail-icon { display: block; width: 22px; height: 22px; flex: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; fill: none; }
+.tool-tab .rail-icon, .ps-rail-select .rail-icon { display: block; position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); width: 22px; height: 22px; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; fill: none; }
 .workspace-tool-drawer { display: none; position: fixed; left: 68px; top: 43px; bottom: 42px; width: 310px; z-index: 31; padding: 0 18px 20px; overflow-y: auto; overflow-x: hidden; box-shadow: 13px 0 30px #0007; border-right: 1px solid var(--workspace-border); background: var(--workspace-panel); scrollbar-color: #5b5f66 transparent; }
 .tool-sidebar.drawer-open .workspace-tool-drawer { display: block; }
 .workspace-drawer-heading { display: flex; align-items: center; justify-content: space-between; height: 49px; margin-bottom: 12px; border-bottom: 1px solid var(--workspace-border); color: var(--workspace-text); font-weight: 700; font-size: 12px; }

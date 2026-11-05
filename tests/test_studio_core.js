@@ -126,6 +126,7 @@ assert.ok(workareaStart < ribbonStart && ribbonStart < canvasStart && canvasStar
   'Context ribbon must be in the canvas column with the inspector as its grid sibling');
 assert.ok(workspaceCss.includes('grid-row: 1 / 3'), 'Inspector should span both canvas rows');
 assert.ok(workspaceCss.includes('grid-template-rows: auto minmax(0,1fr)'), 'Ribbon must not shift inspector');
+assert.ok(workspaceCss.includes('transform: translate(-50%,-50%)'), 'Tool pictograms must be centered independently of hidden text');
 for (const name of ['select', 'text', 'image', 'pdf', 'qr', 'barcode', 'address', 'datetime', 'shape', 'border', 'label']) {
   assert.ok(workspaceMarkup.includes(`id="rail-icon-${name}"`), `Missing consistent ${name} vector icon`);
   assert.ok(workspaceMarkup.includes(`href="#rail-icon-${name}"`), `Tool ${name} not using its vector icon`);
