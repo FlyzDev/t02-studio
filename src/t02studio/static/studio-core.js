@@ -73,6 +73,55 @@ const T02StudioCore = (() => {
     };
   }
 
+  function selectionBounds(boxes) {
+    if (!boxes.length) return null;
+    const x = Math.min(...boxes.map(box => box.x));
+    const y = Math.min(...boxes.map(box => box.y));
+    return { x, y,
+      w: Math.max(...boxes.map(box => box.x + box.w)) - x,
+      h: Math.max(...boxes.map(box => box.y + box.h)) - y };
+  }
+
+  function marqueeRect(start, end) {
+    return { x: Math.min(start.x, end.x), y: Math.min(start.y, end.y),
+      w: Math.abs(end.x - start.x), h: Math.abs(end.y - start.y) };
+  }
+
+  function marqueeHits(boxes, rect) {
+    if (rect.w < 3 || rect.h < 3) return [];
+    return boxes.filter(box =>
+      box.x < rect.x + rect.w && box.x + box.w > rect.x &&
+      box.y < rect.y + rect.h && box.y + box.h > rect.y).map(box => box.id);
+  }
+
+  function transformSelection(boxes, operation, dx, dy, pageHeight) {
+    const bounds = selectionBounds(boxes);
+    if (!bounds) return [];
+    const limitY = Math.max(1, Math.min(MAX_HEIGHT, Math.round(pageHeight)));
+    if (operation === "move") {
+      const moveX = Math.max(-bounds.x, Math.min(PAPER_WIDTH - bounds.x - bounds.w, dx));
+      const moveY = Math.max(-bounds.y, Math.min(limitY - bounds.y - bounds.h, dy));
+      return boxes.map(box => ({ ...box,
+        x: Math.round(box.x + moveX), y: Math.round(box.y + moveY) }));
+    }
+    if (operation !== "resize") throw Error("Unknown selection transform");
+    const minScaleX = Math.max(...boxes.map(box => Math.min(1, 8 / Math.max(1, box.w))));
+    const minScaleY = Math.max(...boxes.map(box => Math.min(1, 8 / Math.max(1, box.h))));
+    const width = Math.min(PAPER_WIDTH - bounds.x,
+      Math.max(bounds.w * minScaleX, bounds.w + dx));
+    const height = Math.min(limitY - bounds.y,
+      Math.max(bounds.h * minScaleY, bounds.h + dy));
+    const scaleX = width / Math.max(1, bounds.w);
+    const scaleY = height / Math.max(1, bounds.h);
+    return boxes.map(box => ({
+      ...box,
+      x: Math.round(bounds.x + (box.x - bounds.x) * scaleX),
+      y: Math.round(bounds.y + (box.y - bounds.y) * scaleY),
+      w: Math.max(1, Math.round(box.w * scaleX)),
+      h: Math.max(1, Math.round(box.h * scaleY))
+    }));
+  }
+
   function rotateBox(box, quarterTurns) {
     const w = Math.round(box.h), h = Math.round(box.w);
     return {
@@ -86,7 +135,7 @@ const T02StudioCore = (() => {
 
   return { PAPER_WIDTH, MAX_HEIGHT, DPI, LABEL_SIZES, LABEL_FRAMES, FRAME_NAMES, SHAPE_NAMES, FONT_STACKS,
     mmToPx, pxToMm, normalizeOpacity, normalizeFrameWidth, normalizeTextThickness,
-    flowLayout, clampBox, rotateBox };
+    flowLayout, clampBox, rotateBox, selectionBounds, marqueeRect, marqueeHits, transformSelection };
 })();
 
 if (typeof module !== "undefined" && module.exports) module.exports = T02StudioCore;

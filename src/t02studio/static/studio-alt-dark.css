@@ -109,6 +109,8 @@ html[data-theme="dark"] .layer-item.active .layer-symbol { background: #3b5275; 
 html[data-theme="dark"] .layer-text strong { color: #d5dde8; }
 html[data-theme="dark"] .layer-text small { color: #9ba7b7; }
 html[data-theme="dark"] .layer-visibility { color: #b8c8d8; }
+html[data-theme="dark"] .layer-delete { color: #aebaca; }
+html[data-theme="dark"] .layer-delete:hover, html[data-theme="dark"] .layer-delete:focus-visible { background: #58303b; color: #ffd1d1; }
 html[data-theme="dark"] .selection-properties,
 html[data-theme="dark"] .text-properties { border-color: #323e4b; }
 html[data-theme="dark"] #rotation-value,

@@ -148,6 +148,9 @@ a { color: inherit; }
 .layer-text strong { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11px; color: #495464; font-weight: 620; }
 .layer-text small { display: block; color: #9ba4b0; font-size: 10px; margin-top: 2px; }
 .layer-visibility { background: none; border: 0; color: #8b97a8; padding: 4px; font-size: 14px; }
+.layer-delete { flex: none; border: 0; border-radius: 6px; background: transparent; color: #8994a2; cursor: pointer; font-size: 18px; line-height: 1; min-width: 23px; min-height: 26px; }
+.layer-delete:hover, .layer-delete:focus-visible { background: #fee8e8; color: #ac2626; }
+.layer-item.active .layer-delete { color: #6a7b91; }
 .selection-properties { border-top: 1px solid var(--line); padding-top: 20px; margin-top: 22px; }
 .properties-title { display: flex; justify-content: space-between; align-items: center; }
 #rotation-value { color: #8d97a5; font-size: 11px; font-variant-numeric: tabular-nums; }

@@ -1,3 +1,11 @@
+## T02 Studio v0.2.1 · Multi-layer selection
+
+- **Desktop-style box selection:** in Free edit, use Select / box-select and drag across empty paper to select multiple overlapping layers. Drag in either direction.
+- **Move and resize a group:** drag any selected layer to move the whole selection, or drag its shared bottom-right handle to proportionally reposition and resize the selection.
+- **Multi-select shortcuts:** Shift-click objects on the canvas, Ctrl/Shift-click rows in Layers, Ctrl+A to select all visible layers, and Escape to clear selection. Arrow keys nudge selected layers together; Shift+arrow nudges by 10 px.
+- **Inline layer deletion:** each Layers row now has a small `×` at its right edge. Delete/Backspace removes the selection, including multiple selected layers, with Undo support.
+- Existing JSON projects, raster PNG export and the printing pipeline are unchanged. Selection guides are editor-only and not printed.
+
 ## T02 Studio v0.2.0 · More label tools
 
 - Five additional component tools: **Barcode**, **Address**, **Date/time**, **Shape** and **Border**, alongside the existing text, image, PDF, QR and label designer.

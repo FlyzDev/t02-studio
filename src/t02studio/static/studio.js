@@ -3,11 +3,11 @@
 const $ = (id) => document.getElementById(id);
 const { PAPER_WIDTH, MAX_HEIGHT, LABEL_SIZES, LABEL_FRAMES, FRAME_NAMES, SHAPE_NAMES, FONT_STACKS,
   mmToPx, pxToMm, normalizeOpacity, normalizeFrameWidth, normalizeTextThickness,
-  flowLayout, clampBox, rotateBox } = T02StudioCore;
+  flowLayout, clampBox, rotateBox, selectionBounds, marqueeRect, marqueeHits, transformSelection } = T02StudioCore;
 const canvas = $("composition-canvas");
 const ctx = canvas.getContext("2d", { alpha: false });
 const work = {
-  mode: "flow", tool: "text", freeTool: "select", items: [], selectedId: null,
+  mode: "flow", tool: "text", freeTool: "select", items: [], selectedId: null, selectedIds: [],
   pageHeight: mmToPx(150), busy: false, drag: null, inlineId: null,
   paperDrag: null,
   history: [], future: [], imageFile: null, pdfFile: null, pdfSegment: 0,
@@ -37,7 +37,18 @@ function apiError(response) {
   return response.json().catch(() => ({})).then(data => { throw Error(data.error || `Server error (${response.status})`); });
 }
 
-function selected() { return work.items.find(item => item.id === work.selectedId) || null; }
+function selected() {
+  return work.selectedIds.length > 1 ? null : work.items.find(item => item.id === work.selectedId) || null;
+}
+function selectedItems() {
+  const ids = new Set(work.selectedIds);
+  return work.items.filter(item => ids.has(item.id));
+}
+function setSelection(ids) {
+  const allowed = new Set(work.items.map(item => item.id));
+  work.selectedIds = [...new Set(ids)].filter(id => allowed.has(id));
+  work.selectedId = work.selectedIds.length === 1 ? work.selectedIds[0] : null;
+}
 function cloneItem(item) { return JSON.parse(JSON.stringify(item)); }
 function projectData() {
   return { version: 2, mode: work.mode, pageHeight: work.pageHeight,
@@ -103,7 +114,7 @@ function restoreData(data) {
   work.labelFont = Object.hasOwn(FONT_STACKS, data.labelFont) ? data.labelFont : "modern";
   work.labelDesign = data.labelDesign === true;
   work.labelFrameChoice = work.labelDesign ? work.labelFrame : "rounded";
-  work.selectedId = null;
+  setSelection([]);
   work.history.length = 0; work.future.length = 0;
   imageCache.clear();
   syncMode(); syncLabelControls(); render(); scheduleDraft();
@@ -371,16 +382,37 @@ function drawArtwork(context, geometry) {
 }
 
 function drawSelection(geometry) {
-  const box = geometry.boxes.find(item => item.id === work.selectedId);
-  if (!box) return;
-  ctx.save(); ctx.strokeStyle = "#159e80"; ctx.lineWidth = 2;
-  ctx.setLineDash([5, 4]); ctx.strokeRect(box.x + 1, box.y + 1, box.w - 2, box.h - 2);
-  ctx.setLineDash([]);
-  if (work.mode === "free") {
-    ctx.fillStyle = "#159e80"; ctx.fillRect(box.x + box.w - 8, box.y + box.h - 8, 13, 13);
-    ctx.fillStyle = "white"; ctx.fillRect(box.x + box.w - 4, box.y + box.h - 4, 5, 5);
+  const ids = new Set(work.selectedIds);
+  const boxes = geometry.boxes.filter(item => ids.has(item.id));
+  if (boxes.length) {
+    ctx.save(); ctx.strokeStyle = "#159e80"; ctx.lineWidth = 2;
+    ctx.setLineDash([5, 4]);
+    boxes.forEach(box => ctx.strokeRect(box.x + 1, box.y + 1, box.w - 2, box.h - 2));
+    ctx.setLineDash([]);
+    const bounds = selectionBounds(boxes);
+    if (bounds && work.mode === "free") {
+      if (boxes.length > 1) {
+        ctx.strokeStyle = "#2563eb";
+        ctx.strokeRect(bounds.x, bounds.y, bounds.w, bounds.h);
+      }
+      ctx.fillStyle = "#159e80";
+      ctx.fillRect(bounds.x + bounds.w - 8, bounds.y + bounds.h - 8, 13, 13);
+      ctx.fillStyle = "white";
+      ctx.fillRect(bounds.x + bounds.w - 4, bounds.y + bounds.h - 4, 5, 5);
+    }
+    ctx.restore();
   }
-  ctx.restore();
+  if (work.drag?.operation === "marquee") {
+    const area = marqueeRect(work.drag.start, work.drag.current);
+    ctx.save();
+    ctx.fillStyle = "rgba(37,99,235,.12)";
+    ctx.strokeStyle = "#2563eb";
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([6, 4]);
+    ctx.fillRect(area.x, area.y, area.w, area.h);
+    ctx.strokeRect(area.x, area.y, area.w, area.h);
+    ctx.restore();
+  }
 }
 
 function render() {
@@ -399,18 +431,18 @@ function render() {
     clipped ? "Some items extend outside the paper and will be clipped." : `${work.items.length} items · 53 mm · 203 DPI`;
   $("length-note").style.color = oversized ? "#f1a6a6" : clipped ? "#eebc73" : "";
   $("print-button").disabled = oversized || (work.items.length === 0 && work.labelFrame === "none") || work.busy || !work.printerPort;
-  $("block-count").textContent = `${work.items.length} items`;
+  $("block-count").textContent = work.selectedIds.length > 1 ?
+    `${work.selectedIds.length} selected` : `${work.items.length} items`;
   $("page-height").value = Math.round(pxToMm(work.pageHeight));
   $("page-height-range").value = Math.round(pxToMm(work.pageHeight));
   $("paper-resize").setAttribute("aria-valuenow", String(Math.round(mm)));
   updateLayers(); updateProperties(geometry);
   $("undo").disabled = work.history.length === 0;
   $("redo").disabled = work.future.length === 0;
-  const hasSelected = Boolean(selected());
-  $("delete-selected").disabled = !hasSelected;
+  const hasSelected = work.selectedIds.length > 0;
   $("duplicate").disabled = !hasSelected;
-  $("rotate-left").disabled = !hasSelected;
-  $("rotate-right").disabled = !hasSelected;
+  $("rotate-left").disabled = !selected();
+  $("rotate-right").disabled = !selected();
 }
 
 function updateLayers() {
@@ -422,8 +454,8 @@ function updateLayers() {
   }
   [...work.items].reverse().forEach(item => {
     const row = document.createElement("div");
-    row.className = "layer-item" + (work.selectedId === item.id ? " active" : "");
-    row.title = "Select layer";
+    row.className = "layer-item" + (work.selectedIds.includes(item.id) ? " active" : "");
+    row.title = "Click to select · Ctrl/Shift-click to select several";
     const symbol = document.createElement("span"); symbol.className = "layer-symbol";
     symbol.textContent = ({ text: "T", frame: "▣", shape: "◇", image: "▧" })[item.type];
     const names = document.createElement("div"); names.className = "layer-text";
@@ -436,8 +468,22 @@ function updateLayers() {
     visibility.addEventListener("click", event => {
       event.stopPropagation(); checkpoint(); item.hidden = !item.hidden; render(); scheduleDraft();
     });
-    row.append(symbol, names, visibility);
-    row.addEventListener("click", () => { work.selectedId = item.id; render(); });
+    const remove = document.createElement("button");
+    remove.type = "button"; remove.className = "layer-delete"; remove.textContent = "×";
+    remove.title = `Delete ${item.name}`; remove.setAttribute("aria-label", `Delete layer ${item.name}`);
+    remove.addEventListener("click", event => {
+      event.stopPropagation(); deleteLayers([item.id]);
+    });
+    row.append(symbol, names, visibility, remove);
+    row.addEventListener("click", event => {
+      if (event.ctrlKey || event.metaKey || event.shiftKey) {
+        const ids = new Set(work.selectedIds);
+        if (ids.has(item.id)) ids.delete(item.id);
+        else ids.add(item.id);
+        setSelection([...ids]);
+      } else setSelection([item.id]);
+      render();
+    });
     list.appendChild(row);
   });
 }
@@ -511,7 +557,7 @@ function addItem(item, position = null) {
   item.y = Math.max(0, Math.min(MAX_HEIGHT - item.h, item.y));
   if (work.mode === "free" && item.y + item.h + 16 > work.pageHeight)
     work.pageHeight = Math.min(MAX_HEIGHT, item.y + item.h + 16);
-  work.items.push(item); work.selectedId = item.id;
+  work.items.push(item); setSelection([item.id]);
   render(); scheduleDraft();
 }
 
@@ -683,7 +729,7 @@ function createLabel() {
   if (subtitle) lineItem(subtitle, "subtitle", 21, false);
   layoutLabelTextItems(items, work.pageHeight);
   work.items = items;
-  work.selectedId = null;
+  setSelection([]);
   syncMode(); syncLabelControls(); render(); scheduleDraft();
   toast(`${preset.widthMm} × ${preset.heightMm} mm label ready. Edit text directly on the paper.`);
 }
@@ -745,13 +791,37 @@ function reorderSelected(direction) {
   render(); scheduleDraft();
 }
 
+function deleteLayers(ids) {
+  const removing = new Set(ids);
+  if (!work.items.some(item => removing.has(item.id))) return;
+  finishInlineEdit(); checkpoint();
+  work.items = work.items.filter(item => !removing.has(item.id));
+  setSelection(work.selectedIds.filter(id => !removing.has(id)));
+  render(); scheduleDraft();
+}
 function deleteSelected() {
-  if (!selected()) return;
-  checkpoint(); work.items = work.items.filter(item => item.id !== work.selectedId);
-  work.selectedId = null; render(); scheduleDraft();
+  deleteLayers(work.selectedIds);
 }
 
 function duplicateSelected() {
+  if (work.selectedIds.length > 1) {
+    const originals = selectedItems();
+    if (work.items.length + originals.length > MAX_ITEMS) { toast("Maximum 100 layers", true); return; }
+    checkpoint();
+    const ids = [];
+    for (const item of originals) {
+      const copy = cloneItem(item);
+      copy.id = uid(); copy.name = `${item.name} copy`;
+      copy.x = Math.min(PAPER_WIDTH - copy.w, item.x + 14);
+      copy.y = Math.min(MAX_HEIGHT - copy.h, item.y + 14);
+      work.items.push(copy); ids.push(copy.id);
+    }
+    if (work.mode === "free") {
+      const lowest = Math.max(...work.items.filter(item => ids.includes(item.id)).map(item => item.y + item.h));
+      work.pageHeight = Math.min(MAX_HEIGHT, Math.max(work.pageHeight, lowest + 16));
+    }
+    setSelection(ids); render(); scheduleDraft(); return;
+  }
   const item = selected(); if (!item) return;
   const copy = cloneItem(item);
   copy.name = `${item.name} copy`; copy.x = Math.min(PAPER_WIDTH - copy.w, item.x + 18);
@@ -839,40 +909,90 @@ function pointerDown(event) {
   if (work.mode === "free" && work.freeTool === "image") {
     work.imagePickerAutoAdd = true; $("image-file").click(); setFreeTool("select"); return;
   }
-  const currentBox = layouts().boxes.find(box => box.id === work.selectedId);
-  const resizing = currentBox && work.mode === "free" &&
+  const visible = layouts().boxes;
+  const active = visible.filter(box => work.selectedIds.includes(box.id));
+  const bounds = selectionBounds(active);
+  const groupHandle = work.mode === "free" && active.length > 1 && bounds &&
+    Math.abs(pos.x - (bounds.x + bounds.w)) < 15 &&
+    Math.abs(pos.y - (bounds.y + bounds.h)) < 15;
+  const currentBox = visible.find(box => box.id === work.selectedId);
+  const singleHandle = work.mode === "free" && currentBox &&
     Math.abs(pos.x - (currentBox.x + currentBox.w)) < 15 &&
     Math.abs(pos.y - (currentBox.y + currentBox.h)) < 15;
-  const hit = resizing ? currentBox : hitTest(pos);
-  work.selectedId = hit ? hit.id : null;
+  const hit = groupHandle ? active[0] : singleHandle ? currentBox : hitTest(pos);
+  if (event.shiftKey && hit && !groupHandle && !singleHandle) {
+    const ids = new Set(work.selectedIds);
+    if (ids.has(hit.id)) ids.delete(hit.id);
+    else ids.add(hit.id);
+    setSelection([...ids]); render(); return;
+  }
+  if (!hit) {
+    const baseIds = event.shiftKey ? [...work.selectedIds] : [];
+    setSelection(baseIds);
+    if (work.mode === "free") {
+      work.drag = { operation: "marquee", start: pos, current: pos, baseIds };
+      canvas.setPointerCapture(event.pointerId);
+    }
+    render(); return;
+  }
+  if (!groupHandle && !work.selectedIds.includes(hit.id)) setSelection([hit.id]);
   render();
-  if (!hit || work.mode !== "free") return;
-  const item = selected();
-  work.drag = { id: hit.id, start: pos, initial: { x: item.x, y: item.y, w: item.w, h: item.h },
-    operation: resizing ? "resize" : "move", changed: false, checkpointed: false };
+  if (work.mode !== "free") return;
+  const ids = work.selectedIds;
+  const boxes = visible.filter(box => ids.includes(box.id));
+  work.drag = { start: pos, initialBoxes: boxes.map(box => ({ ...box })),
+    initialFonts: new Map(selectedItems().map(item => [item.id, item.fontSize])),
+    operation: groupHandle || singleHandle ? "resize" : "move",
+    changed: false, checkpointed: false };
   canvas.setPointerCapture(event.pointerId);
 }
 function pointerMove(event) {
   if (!work.drag) return;
   const pos = pointerPosition(event);
-  const item = work.items.find(block => block.id === work.drag.id);
-  if (!item) return;
+  if (work.drag.operation === "marquee") {
+    work.drag.current = pos;
+    const rect = marqueeRect(work.drag.start, pos);
+    setSelection([...work.drag.baseIds, ...marqueeHits(layouts().boxes, rect)]);
+    render(); return;
+  }
   const dx = pos.x - work.drag.start.x, dy = pos.y - work.drag.start.y;
   if (Math.abs(dx) < 1 && Math.abs(dy) < 1 && !work.drag.changed) return;
   if (!work.drag.checkpointed) { checkpoint(); work.drag.checkpointed = true; }
   work.drag.changed = true;
-  const original = work.drag.initial;
-  const values = work.drag.operation === "resize" ?
-    { x: original.x, y: original.y, w: Math.max(25, original.w + dx), h: Math.max(25, original.h + dy) } :
-    { x: original.x + dx, y: original.y + dy, w: original.w, h: original.h };
-  Object.assign(item, clampBox(values, work.pageHeight));
+  const originals = work.drag.initialBoxes;
+  if (originals.length > 1) {
+    const transformed = transformSelection(originals, work.drag.operation, dx, dy, work.pageHeight);
+    const oldBounds = selectionBounds(originals);
+    const newBounds = selectionBounds(transformed);
+    const fontScale = work.drag.operation === "resize" ?
+      Math.min(newBounds.w / oldBounds.w, newBounds.h / oldBounds.h) : 1;
+    for (const box of transformed) {
+      const item = work.items.find(entry => entry.id === box.id);
+      if (!item) continue;
+      Object.assign(item, { x: box.x, y: box.y, w: box.w, h: box.h });
+      if (item.type === "text" && work.drag.operation === "resize") {
+        item.fontSize = Math.max(8, Math.min(100, Math.round(work.drag.initialFonts.get(item.id) * fontScale)));
+        if (item.labelRole) item.baseFontSize = item.fontSize;
+      }
+    }
+  } else if (originals.length === 1) {
+    const original = originals[0];
+    const item = work.items.find(entry => entry.id === original.id);
+    if (!item) return;
+    const values = work.drag.operation === "resize" ?
+      { x: original.x, y: original.y, w: Math.max(25, original.w + dx), h: Math.max(25, original.h + dy) } :
+      { x: original.x + dx, y: original.y + dy, w: original.w, h: original.h };
+    Object.assign(item, clampBox(values, work.pageHeight));
+  }
   render();
 }
 function pointerUp(event) {
   if (!work.drag) return;
+  const movedArtwork = work.drag.operation !== "marquee";
   work.drag = null;
   if (canvas.hasPointerCapture(event.pointerId)) canvas.releasePointerCapture(event.pointerId);
-  scheduleDraft();
+  render();
+  if (movedArtwork) scheduleDraft();
 }
 
 function paperResizeDown(event) {
@@ -1319,7 +1439,6 @@ function bind() {
   });
   $("move-up").addEventListener("click", () => reorderSelected(1));
   $("move-down").addEventListener("click", () => reorderSelected(-1));
-  $("delete-selected").addEventListener("click", deleteSelected);
   $("duplicate").addEventListener("click", duplicateSelected);
   $("rotate-left").addEventListener("click", () => rotateSelected(-1));
   $("rotate-right").addEventListener("click", () => rotateSelected(1));
@@ -1343,7 +1462,7 @@ function bind() {
   canvas.addEventListener("pointercancel", pointerUp);
   canvas.addEventListener("dblclick", event => {
     const box = hitTest(pointerPosition(event));
-    if (box) { work.selectedId = box.id; render(); beginInlineEdit(selected()); }
+    if (box) { setSelection([box.id]); render(); beginInlineEdit(selected()); }
   });
   $("inline-text").addEventListener("blur", () => finishInlineEdit());
   $("inline-text").addEventListener("keydown", event => {
@@ -1380,7 +1499,7 @@ function bind() {
   });
   $("clear-project").addEventListener("click", () => {
     if ((!work.items.length && work.labelFrame === "none") || !window.confirm("Clear the entire print design?")) return;
-    checkpoint(); work.items = []; work.selectedId = null; work.labelFrame = "none"; work.labelDesign = false;
+    checkpoint(); work.items = []; setSelection([]); work.labelFrame = "none"; work.labelDesign = false;
     work.labelFrameChoice = "rounded"; work.pageHeight = mmToPx(150);
     syncLabelControls(); render(); scheduleDraft(); toast("All layers cleared. Use Undo to restore your design.");
   });
@@ -1414,13 +1533,23 @@ function bind() {
     if (typing) return;
     if (modifier && event.key.toLowerCase() === "z") { event.preventDefault(); event.shiftKey ? redo() : undo(); }
     else if (modifier && event.key.toLowerCase() === "y") { event.preventDefault(); redo(); }
+    else if (modifier && event.key.toLowerCase() === "a" && work.mode === "free") {
+      event.preventDefault(); setSelection(work.items.filter(item => !item.hidden).map(item => item.id)); render();
+    }
     else if (modifier && event.key.toLowerCase() === "d") { event.preventDefault(); duplicateSelected(); }
+    else if (event.key === "Escape" && work.selectedIds.length) { event.preventDefault(); setSelection([]); render(); }
     else if (event.key === "Delete" || event.key === "Backspace") { event.preventDefault(); deleteSelected(); }
-    else if (work.mode === "free" && selected() && ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(event.key)) {
-      event.preventDefault(); checkpoint(); const step = event.shiftKey ? 10 : 1, item = selected();
+    else if (work.mode === "free" && work.selectedIds.length && ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(event.key)) {
+      event.preventDefault(); checkpoint(); const step = event.shiftKey ? 10 : 1;
       const dx = event.key === "ArrowLeft" ? -step : event.key === "ArrowRight" ? step : 0;
       const dy = event.key === "ArrowUp" ? -step : event.key === "ArrowDown" ? step : 0;
-      Object.assign(item, clampBox({ x: item.x + dx, y: item.y + dy, w: item.w, h: item.h }, work.pageHeight));
+      const items = selectedItems();
+      const boxes = transformSelection(items.map(item => ({ id: item.id, x: item.x, y: item.y, w: item.w, h: item.h })),
+        "move", dx, dy, work.pageHeight);
+      for (const box of boxes) {
+        const item = items.find(entry => entry.id === box.id);
+        Object.assign(item, { x: box.x, y: box.y });
+      }
       render(); scheduleDraft();
     }
   });

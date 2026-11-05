@@ -8,6 +8,8 @@ T02 Studio is an independent community project and is **not affiliated with or e
 
 T02 Studio combines text, images, PDF extracts, QR codes and real retail barcodes into one 384-dot-wide strip. Its free-layout editor supports dragging, resizing, 90° rotation, an adjustable paper edge, paste-to-add images, shapes, borders, layers, project JSON and PNG export.
 
+**Multi-layer selection:** in **Free edit**, choose **Select / box-select** and drag over an empty area of the paper to draw a selection rectangle, just like selecting desktop icons. Drag any selected element to move the selection together, or drag the group's bottom-right corner to resize all selected layers. Shift-click elements on the canvas, or Ctrl/Shift-click rows in the Layers panel to add/remove them from the selection. Each layer has its own `×` delete button; Delete/Backspace removes the current selection. Ctrl+A selects all visible layers, Esc deselects, and Undo reverses edits.
+
 ## Preview
 
 ![T02 Studio label designer with a 50 x 80 mm Field Notes sample, stacked frames and an editable opacity slider](docs/screenshots/field-notes-editor.png)
@@ -111,6 +113,7 @@ If needed, create a **narrow Windows Firewall inbound rule** for only that PC's 
 - Compose a long strip from multiple blocks (text, image, PDF segment, QR, Code 128, EAN-13, address, date/time, and vector-style shapes).
 - Discover paired Windows serial ports, identify likely T02 entries, and remember the selected outgoing COM port per browser. Supports multiple LAN clients selecting ports independently.
 - Flow and free-layout modes; clipboard image paste and drag/drop.
+- Rectangle marquee, multi-layer move/resize, Shift/Ctrl multi-select, inline layer removal, and undoable bulk deletion.
 - Label designer presets, stackable frame layers, 0–100% layer opacity, and typography controls, with no external font CDN requirement.
 - Adjustable 20–999 mm free canvas, including a draggable bottom paper edge.
 - Rotate blocks left/right by 90°, drag to position, resize, re-order, hide or delete.

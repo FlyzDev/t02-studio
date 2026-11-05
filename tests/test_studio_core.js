@@ -3,7 +3,8 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { mmToPx, pxToMm, flowLayout, clampBox, rotateBox, PAPER_WIDTH, MAX_HEIGHT,
   LABEL_SIZES, LABEL_FRAMES, FRAME_NAMES, SHAPE_NAMES, FONT_STACKS, normalizeOpacity,
-  normalizeFrameWidth, normalizeTextThickness } = require('../src/t02studio/static/studio-core.js');
+  normalizeFrameWidth, normalizeTextThickness, selectionBounds, marqueeRect,
+  marqueeHits, transformSelection } = require('../src/t02studio/static/studio-core.js');
 
 assert.equal(PAPER_WIDTH, 384);
 assert.equal(MAX_HEIGHT, 8000);
@@ -50,6 +51,25 @@ for (let i = 1; i < result.blocks.length; i++) {
 
 assert.deepEqual(clampBox({ x: -25, y: -50, w: 500, h: 900 }, 600), { x: 0, y: 0, w: 384, h: 600 });
 assert.deepEqual(clampBox({ x: 320, y: 550, w: 100, h: 100 }, 600), { x: 284, y: 500, w: 100, h: 100 });
+const multi = [
+  { id: 'left', x: 20, y: 30, w: 80, h: 40 },
+  { id: 'right', x: 140, y: 110, w: 60, h: 50 }
+];
+assert.deepEqual(selectionBounds(multi), { x: 20, y: 30, w: 180, h: 130 });
+assert.equal(selectionBounds([]), null);
+assert.deepEqual(marqueeRect({ x: 205, y: 165 }, { x: 10, y: 20 }),
+  { x: 10, y: 20, w: 195, h: 145 });
+assert.deepEqual(marqueeHits(multi, { x: 70, y: 40, w: 100, h: 100 }), ['left', 'right']);
+assert.deepEqual(marqueeHits(multi, { x: 100, y: 70, w: 20, h: 20 }), []);
+assert.deepEqual(marqueeHits(multi, { x: 10, y: 20, w: 1, h: 1 }), []);
+const moved = transformSelection(multi, 'move', 300, -80, 600);
+assert.deepEqual(moved.map(box => ({ id: box.id, x: box.x, y: box.y })),
+  [{ id: 'left', x: 204, y: 0 }, { id: 'right', x: 324, y: 80 }]);
+const grown = transformSelection(multi, 'resize', 90, 130, 600);
+assert.deepEqual(grown.map(box => ({ id: box.id, x: box.x, y: box.y, w: box.w, h: box.h })),
+  [{ id: 'left', x: 20, y: 30, w: 120, h: 80 }, { id: 'right', x: 200, y: 190, w: 90, h: 100 }]);
+assert.ok(transformSelection(multi, 'resize', -1000, -1000, 600).every(box => box.w >= 8 && box.h >= 8));
+assert.deepEqual(transformSelection([], 'move', 2, 4, 600), []);
 const rotated = rotateBox({ x: 16, y: 30, w: 352, h: 90, rotation: 0 }, 1);
 assert.deepEqual({ x: rotated.x, y: rotated.y, w: rotated.w, h: rotated.h, rotation: rotated.rotation },
   { x: 147, y: -101, w: 90, h: 352, rotation: 90 });
@@ -102,4 +122,8 @@ assert.ok(source.includes('item.type === "frame"'));
 assert.ok(source.includes('item.type === "shape"'));
 assert.ok(source.includes('context.strokeText(line'));
 assert.ok(source.includes('toast("All layers cleared. Use Undo to restore your design.")'));
+assert.ok(source.includes('operation: "marquee"'));
+assert.ok(source.includes('className = "layer-delete"'));
+assert.ok(source.includes('transformSelection(originals, work.drag.operation'));
+assert.ok(!markup.includes('id="delete-selected"'), 'Single toolbar delete should be replaced with inline layer actions');
 console.log('studio core tests OK');
