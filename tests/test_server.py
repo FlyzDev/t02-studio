@@ -57,6 +57,23 @@ class ServerTests(unittest.TestCase):
         self.assertTrue(response.json["ports"][1]["likely_printer"])
         self.assertEqual([], self.jobs)
 
+    def test_printer_profile_api_only_advertises_verified_hardware(self):
+        response = self.client.get("/api/printer-profiles")
+        self.assertEqual(200, response.status_code)
+        self.assertEqual("phomemo-t02", response.json["default_profile"])
+        self.assertEqual(1, len(response.json["profiles"]))
+        self.assertEqual(384, response.json["profiles"][0]["width_px"])
+        self.assertTrue(response.json["profiles"][0]["hardware_verified"])
+        self.assertEqual([], self.jobs)
+
+    def test_unverified_or_unknown_profile_is_rejected_before_printing(self):
+        response = self.client.post("/api/print", data={
+            "kind": "text", "text": "No physical print", "printer_profile": "laboratory-576",
+            "job_id": "0a06405e-a49d-45ac-a636-a636d05842df"})
+        self.assertEqual(400, response.status_code)
+        self.assertIn("not hardware-verified", response.json["error"])
+        self.assertEqual([], self.jobs)
+
     def test_browser_selected_printer_is_used_for_print(self):
         response = self.client.post("/api/print", data={
             "kind": "text", "text": "Hello", "printer_port": "com8",

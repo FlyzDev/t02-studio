@@ -1,3 +1,10 @@
+## Unreleased · Multi-printer foundation (T02 remains the only verified printer)
+
+- Printer capabilities now have a verified-model registry. A new read-only `/api/printer-profiles` endpoint advertises only models confirmed against hardware, currently the Phomemo T02 Mini.
+- The ESC/POS raster encoder supports profile-selected byte-aligned widths and has synthetic 576-dot packet tests. The legacy T02 packet sequence and the default 384-dot workflow remain unchanged.
+- `/api/print` fails closed on unverified printer profile IDs. No other printer model, USB transport or network transport is claimed to be supported yet.
+- Added a [multi-printer roadmap](docs/multi-printer-roadmap.md) and verification gates before eventual product/repository rebranding.
+
 ## T02 Studio v0.3.8 · Permanent rotation controls and showcase refresh
 
 - **Rotate 90° left / right** now sits beside Undo / Redo on the permanent top toolbar. Both buttons remain visible when switching tools and automatically disable unless a single editable layer is selected.

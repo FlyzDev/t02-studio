@@ -7,6 +7,7 @@ from PIL import Image
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 from t02studio.printer import PrinterBusy, PrinterError, PrinterUnavailable, print_image
+from t02studio.profiles import PrinterProfile, T02_PROFILE
 
 
 class RecordingSerial:
@@ -35,11 +36,25 @@ class PrinterTests(unittest.TestCase):
 
     def test_serial_packet_is_sent_exactly_once(self):
         connection = RecordingSerial()
-        result = print_image(self.image, "COM6", serial_factory=lambda **kwargs: connection)
+        def factory(**kwargs):
+            connection.kwargs = kwargs
+            return connection
+        result = print_image(self.image, "COM6", serial_factory=factory)
         self.assertGreater(result.bytes_written, 100)
         self.assertEqual(len(connection.data), result.bytes_written)
         self.assertEqual(b"\x1b\x40", bytes(connection.data[:2]))
+        self.assertEqual(T02_PROFILE.baudrate, connection.kwargs["baudrate"])
         self.assertTrue(connection.closed)
+
+    def test_unverified_profile_never_opens_a_port(self):
+        sample = PrinterProfile(id="laboratory-384", name="Unverified test printer",
+                                width_px=384, dpi=203, max_height_px=8000,
+                                protocol="escpos-gsv0", transport="serial", baudrate=9600)
+        ports_opened = []
+        with self.assertRaisesRegex(PrinterUnavailable, "not been verified"):
+            print_image(self.image, "COM6",
+                        serial_factory=lambda **kw: ports_opened.append(kw), profile=sample)
+        self.assertEqual([], ports_opened)
 
     def test_long_receipt_is_streamed_in_small_serial_writes(self):
         image = Image.new("1", (384, 800), 0)

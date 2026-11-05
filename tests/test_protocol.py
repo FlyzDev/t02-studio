@@ -6,6 +6,7 @@ from PIL import Image
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 from t02studio.protocol import encode_raster
+from t02studio.profiles import PrinterProfile
 
 
 class ProtocolTests(unittest.TestCase):
@@ -33,6 +34,22 @@ class ProtocolTests(unittest.TestCase):
             encode_raster(Image.new("1", (100, 20), 1))
         with self.assertRaisesRegex(ValueError, "too long"):
             encode_raster(Image.new("1", (384, 8001), 1))
+
+    def test_variable_width_packets_are_encoded_without_claiming_device_support(self):
+        sample = PrinterProfile(id="laboratory-576", name="Unverified 576-dot raster",
+                                width_px=576, dpi=203, max_height_px=1000,
+                                protocol="escpos-gsv0", transport="network")
+        image = Image.new("1", (576, 2), 1)
+        image.putpixel((575, 0), 0)
+        payload = encode_raster(image, profile=sample)
+        self.assertEqual(bytes([0x1D, 0x76, 0x30, 0, 72, 0, 2, 0]), payload[5:13])
+        self.assertEqual(0x01, payload[13 + 71])
+        self.assertEqual(5 + 8 + 72 * 2 + 3, len(payload))
+        self.assertFalse(sample.hardware_verified)
+        with self.assertRaisesRegex(ValueError, "576"):
+            encode_raster(Image.new("1", (384, 2), 1), profile=sample)
+        with self.assertRaisesRegex(ValueError, "too long"):
+            encode_raster(Image.new("1", (576, 1001), 1), profile=sample)
 
 
 if __name__ == "__main__":

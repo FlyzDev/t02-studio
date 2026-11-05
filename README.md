@@ -164,6 +164,16 @@ The Python tests fake the serial printer and **do not print physical paper**. Th
 - The app stores no uploaded documents on the server. Browser local storage and downloaded JSON/PNG copies can retain document data.
 - Tested principally on a Phomemo T02 Mini. Support for other models is not claimed.
 
+### Toward a universal label designer
+
+The first backend foundation for multiple printer models is in place: a
+hardware-verified T02 profile, a read-only `/api/printer-profiles` capability
+endpoint, a variable-width raster packet encoder and a fail-closed profile
+check before printing. **T02 is still the only supported physical printer.**
+The UI, document renderer and print transports have not yet been generalized.
+See the [multi-printer roadmap](docs/multi-printer-roadmap.md) for the honest
+compatibility matrix, test gates and planned device-neutral branding.
+
 ## License and acknowledgement
 
 T02 Studio is released under **GNU AGPL-3.0-only**. See [LICENSE](LICENSE). It uses PyMuPDF, which is available under the AGPL or a separate commercial license. Check the licenses of all dependencies if you redistribute modified builds. The [vivier/phomemo-tools](https://github.com/vivier/phomemo-tools) repository was a research reference for T02 interoperability; consult its GPL-3.0 license independently.

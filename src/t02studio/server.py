@@ -16,6 +16,7 @@ from werkzeug.exceptions import RequestEntityTooLarge
 from .discovery import available_ports
 from .pdf import render_pdf_segments
 from .printer import PrinterBusy, PrinterError, PrinterUnavailable, print_image
+from .profiles import T02_PROFILE, VERIFIED_PROFILES, verified_profile
 from .raster import render_barcode, render_qr, render_text, render_upload
 
 
@@ -149,6 +150,11 @@ def create_app(config: dict | None = None) -> Flask:
                        hint="Pair the printer in Windows Bluetooth settings first, then rescan. "
                             "Only existing serial ports are listed; discovery never sends data.")
 
+    @app.get("/api/printer-profiles")
+    def printer_profiles():
+        return jsonify(default_profile=T02_PROFILE.id,
+                       profiles=[profile.public_capabilities() for profile in VERIFIED_PROFILES])
+
     @app.post("/api/preview")
     def preview():
         try:
@@ -170,6 +176,8 @@ def create_app(config: dict | None = None) -> Flask:
     @app.post("/api/print")
     def print_job():
         try:
+            # Old clients omit this field. Unverified models must never reach hardware.
+            verified_profile(request.form.get("printer_profile", T02_PROFILE.id))
             image, segment_index, total_segments = _render_request()
             job_id = str(uuid.UUID(request.form.get("job_id", "")))
             port_name = (request.form.get("printer_port") or app.config["COM_PORT"]).strip().upper()

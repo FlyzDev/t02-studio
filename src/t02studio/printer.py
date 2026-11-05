@@ -9,6 +9,7 @@ from typing import Callable
 
 from PIL import Image
 
+from .profiles import PrinterProfile, T02_PROFILE
 from .protocol import encode_raster
 
 _PRINT_LOCK = threading.Lock()
@@ -34,13 +35,16 @@ class PrintResult:
 
 
 def print_image(image: Image.Image, port_name: str = "COM6",
-                serial_factory: Callable | None = None) -> PrintResult:
+                serial_factory: Callable | None = None,
+                *, profile: PrinterProfile = T02_PROFILE) -> PrintResult:
+    if profile != T02_PROFILE or not profile.hardware_verified or profile.transport != "serial":
+        raise PrinterUnavailable("This printer profile has not been verified for physical printing")
     if not re.fullmatch(r"COM\d{1,3}", port_name, flags=re.IGNORECASE):
         raise ValueError("Invalid COM port")
     if not _PRINT_LOCK.acquire(blocking=False):
         raise PrinterBusy("The printer is busy with another job")
     try:
-        payload = encode_raster(image)
+        payload = encode_raster(image, profile=profile)
         if serial_factory is None:
             try:
                 import serial
@@ -48,7 +52,7 @@ def print_image(image: Image.Image, port_name: str = "COM6",
                 raise PrinterUnavailable("pyserial is not installed") from exc
             serial_factory = serial.Serial
         try:
-            connection = serial_factory(port=port_name, baudrate=9600,
+            connection = serial_factory(port=port_name, baudrate=profile.baudrate,
                                         timeout=2, write_timeout=15)
         except (OSError, RuntimeError, ValueError) as exc:
             raise PrinterUnavailable(
