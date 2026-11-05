@@ -4,7 +4,7 @@ const path = require('node:path');
 const { mmToPx, pxToMm, flowLayout, clampBox, rotateBox, PAPER_WIDTH, MAX_HEIGHT,
   LABEL_SIZES, LABEL_FRAMES, FRAME_NAMES, SHAPE_NAMES, FONT_STACKS, normalizeOpacity,
   normalizeFrameWidth, normalizeTextThickness, selectionBounds, marqueeRect,
-  marqueeHits, transformSelection } = require('../src/t02studio/static/studio-core.js');
+  marqueeHits, transformSelection, advanceDragTranslation } = require('../src/t02studio/static/studio-core.js');
 
 assert.equal(PAPER_WIDTH, 384);
 assert.equal(MAX_HEIGHT, 8000);
@@ -70,6 +70,16 @@ assert.deepEqual(grown.map(box => ({ id: box.id, x: box.x, y: box.y, w: box.w, h
   [{ id: 'left', x: 20, y: 30, w: 120, h: 80 }, { id: 'right', x: 200, y: 190, w: 90, h: 100 }]);
 assert.ok(transformSelection(multi, 'resize', -1000, -1000, 600).every(box => box.w >= 8 && box.h >= 8));
 assert.deepEqual(transformSelection([], 'move', 2, 4, 600), []);
+let drag = advanceDragTranslation(null, 15, 4, true);
+assert.deepEqual([drag.x, drag.y, drag.axis], [15, 0, 'x']);
+drag = advanceDragTranslation(drag, 6, 40, true);
+assert.deepEqual([drag.x, drag.y], [21, 0], 'Shift locks the selected axis');
+drag = advanceDragTranslation(drag, 2, 7, false);
+assert.deepEqual([drag.x, drag.y, drag.axis], [23, 7, null], 'Releasing Shift is continuous');
+drag = advanceDragTranslation(drag, 2, 12, true);
+assert.deepEqual([drag.x, drag.y, drag.axis], [23, 19, 'y'], 'New Shift gesture picks Y');
+drag = advanceDragTranslation(drag, 10, 3, true);
+assert.deepEqual([drag.x, drag.y], [23, 22], 'Y lock ignores X motion');
 const rotated = rotateBox({ x: 16, y: 30, w: 352, h: 90, rotation: 0 }, 1);
 assert.deepEqual({ x: rotated.x, y: rotated.y, w: rotated.w, h: rotated.h, rotation: rotated.rotation },
   { x: 147, y: -101, w: 90, h: 352, rotation: 90 });
@@ -88,7 +98,7 @@ for (const id of ['ps-context-font', 'ps-context-size', 'ps-context-weight', 'ps
   'ps-center-x', 'ps-center-page', 'ps-rail-select']) {
   assert.ok(workspaceMarkup.includes(`id="${id}"`), `Workspace missing interactive control ${id}`);
 }
-for (const control of ['size', 'weight']) {
+for (const control of ['size', 'weight', 'opacity']) {
   for (const suffix of ['toggle', 'slider', 'popover', 'value']) {
     assert.ok(workspaceMarkup.includes(`id="ps-${control}-${suffix}"`),
       `Workspace missing ${control} popover ${suffix}`);
@@ -104,6 +114,13 @@ assert.ok(source.includes('"compact", "true"'));
 assert.ok(workspaceCss.includes('.layer-item.drop-before'));
 assert.ok(workspaceCss.includes('align-items: center'));
 assert.ok(workspaceJs.includes("forward('ps-context-font'"));
+assert.ok(workspaceMarkup.includes('id="workspace-inline-ribbon"'));
+assert.ok(workspaceMarkup.includes('id="ps-history-actions"'));
+assert.ok(workspaceJs.includes("$('ps-history-actions').append($('undo'), $('redo'))"));
+assert.ok(workspaceCss.includes('.workspace-inline-ribbon.is-open'));
+assert.ok(source.includes('operation: "shift-pending"'));
+assert.ok(source.includes('advanceDragTranslation(work.drag.translation'));
+assert.ok(source.includes('addFrameLayer($("border-style").value, $("border-width").value)'));
 for (const match of source.matchAll(/\$\("([\w-]+)"\)/g)) {
   assert.ok(markup.includes(`id="${match[1]}"`) || workspaceMarkup.includes(`id="${match[1]}"`) || source.includes(`id="${match[1]}"`) ||
     source.includes(`.id = "${match[1]}"`),

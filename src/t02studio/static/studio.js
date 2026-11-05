@@ -3,7 +3,8 @@
 const $ = (id) => document.getElementById(id);
 const { PAPER_WIDTH, MAX_HEIGHT, LABEL_SIZES, LABEL_FRAMES, FRAME_NAMES, SHAPE_NAMES, FONT_STACKS,
   mmToPx, pxToMm, normalizeOpacity, normalizeFrameWidth, normalizeTextThickness,
-  flowLayout, clampBox, rotateBox, selectionBounds, marqueeRect, marqueeHits, transformSelection } = T02StudioCore;
+  flowLayout, clampBox, rotateBox, selectionBounds, marqueeRect, marqueeHits, transformSelection,
+  advanceDragTranslation } = T02StudioCore;
 const canvas = $("composition-canvas");
 const ctx = canvas.getContext("2d", { alpha: false });
 const work = {
@@ -733,15 +734,15 @@ function setLabelFrame(frame) {
   syncLabelControls();
 }
 
-function addFrameLayer() {
+function addFrameLayer(frameStyle = work.labelFrameChoice, frameWidth = work.labelFrameWidth) {
   finishInlineEdit();
-  if (work.labelFrameChoice === "none") {
+  if (!LABEL_FRAMES.includes(frameStyle) || frameStyle === "none") {
     toast("Choose a frame style before adding a layer", true); return;
   }
   if (work.mode !== "free") switchMode("free");
   const height = Math.max(60, Math.min(work.pageHeight - 52, mmToPx(80) - 52));
-  const item = { type: "frame", name: `${FRAME_NAMES[work.labelFrameChoice]} frame`,
-    frameStyle: work.labelFrameChoice, frameWidth: work.labelFrameWidth,
+  const item = { type: "frame", name: `${FRAME_NAMES[frameStyle]} frame`,
+    frameStyle, frameWidth: normalizeFrameWidth(frameWidth),
     rotation: 0, opacity: 1, w: PAPER_WIDTH - 54, h: height };
   addItem(item, { x: 27, y: Math.round((work.pageHeight - height) / 2) });
   toast("Frame layer added. Move its edge or edit its style in Layers.");
@@ -1014,6 +1015,16 @@ function pointerDown(event) {
     Math.abs(pos.y - (currentBox.y + currentBox.h)) < 15;
   const hit = groupHandle ? active[0] : singleHandle ? currentBox : hitTest(pos);
   if (event.shiftKey && hit && !groupHandle && !singleHandle) {
+    if (work.mode === "free") {
+      // A Shift-click toggles selection; a Shift-drag moves along one axis.
+      // Wait for a little pointer travel before deciding which the user meant.
+      work.drag = { operation: "shift-pending", start: pos, lastPosition: pos,
+        pendingHit: hit.id, baseSelection: [...work.selectedIds],
+        moveIds: work.selectedIds.includes(hit.id) ? [...work.selectedIds] : [hit.id],
+        changed: false, checkpointed: false };
+      canvas.setPointerCapture(event.pointerId);
+      return;
+    }
     const ids = new Set(work.selectedIds);
     if (ids.has(hit.id)) ids.delete(hit.id);
     else ids.add(hit.id);
@@ -1033,7 +1044,8 @@ function pointerDown(event) {
   if (work.mode !== "free") return;
   const ids = work.selectedIds;
   const boxes = visible.filter(box => ids.includes(box.id));
-  work.drag = { start: pos, initialBoxes: boxes.map(box => ({ ...box })),
+  work.drag = { start: pos, lastPosition: pos, translation: null,
+    initialBoxes: boxes.map(box => ({ ...box })),
     initialFonts: new Map(selectedItems().map(item => [item.id, item.fontSize])),
     operation: groupHandle || singleHandle ? "resize" : "move",
     changed: false, checkpointed: false };
@@ -1061,13 +1073,28 @@ function stagePointerUp(event) {
 function pointerMove(event) {
   if (!work.drag) return;
   const pos = pointerPosition(event);
+  if (work.drag.operation === "shift-pending") {
+    if (Math.hypot(pos.x - work.drag.start.x, pos.y - work.drag.start.y) < 3) return;
+    setSelection(work.drag.moveIds);
+    work.drag.initialBoxes = layouts().boxes.filter(box => work.selectedIds.includes(box.id)).map(box => ({ ...box }));
+    work.drag.initialFonts = new Map(selectedItems().map(item => [item.id, item.fontSize]));
+    work.drag.operation = "move";
+    work.drag.translation = null;
+  }
   if (work.drag.operation === "marquee") {
     work.drag.current = pos;
     const rect = marqueeRect(work.drag.start, pos);
     setSelection([...work.drag.baseIds, ...marqueeHits(layouts().boxes, rect)]);
     render(); return;
   }
-  const dx = pos.x - work.drag.start.x, dy = pos.y - work.drag.start.y;
+  let dx = pos.x - work.drag.start.x, dy = pos.y - work.drag.start.y;
+  if (work.drag.operation === "move") {
+    work.drag.translation = advanceDragTranslation(work.drag.translation,
+      pos.x - work.drag.lastPosition.x, pos.y - work.drag.lastPosition.y, event.shiftKey);
+    work.drag.lastPosition = pos;
+    dx = work.drag.translation.x;
+    dy = work.drag.translation.y;
+  }
   if (Math.abs(dx) < 1 && Math.abs(dy) < 1 && !work.drag.changed) return;
   if (!work.drag.checkpointed) { checkpoint(); work.drag.checkpointed = true; }
   work.drag.changed = true;
@@ -1100,6 +1127,14 @@ function pointerMove(event) {
 }
 function pointerUp(event) {
   if (!work.drag) return;
+  if (work.drag.operation === "shift-pending") {
+    const ids = new Set(work.drag.baseSelection);
+    if (ids.has(work.drag.pendingHit)) ids.delete(work.drag.pendingHit);
+    else ids.add(work.drag.pendingHit);
+    work.drag = null;
+    if (canvas.hasPointerCapture(event.pointerId)) canvas.releasePointerCapture(event.pointerId);
+    setSelection([...ids]); render(); return;
+  }
   const movedArtwork = work.drag.operation !== "marquee";
   work.drag = null;
   if (canvas.hasPointerCapture(event.pointerId)) canvas.releasePointerCapture(event.pointerId);
@@ -1418,9 +1453,7 @@ function bind() {
   });
   $("add-border").addEventListener("click", () => {
     try {
-      work.labelFrameChoice = $("border-style").value;
-      work.labelFrameWidth = normalizeFrameWidth($("border-width").value);
-      syncLabelControls(); addFrameLayer();
+      addFrameLayer($("border-style").value, $("border-width").value);
     } catch (error) { toast(error.message, true); }
   });
   for (const tool of ["select", "text", "image"]) $("free-" + tool).addEventListener("click", () => setFreeTool(tool));

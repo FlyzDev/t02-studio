@@ -94,6 +94,32 @@ const T02StudioCore = (() => {
       box.y < rect.y + rect.h && box.y + box.h > rect.y).map(box => box.id);
   }
 
+  // Incremental movement avoids jumps when Shift is pressed or released
+  // mid-drag. The first meaningful Shift movement picks the dominant axis.
+  function advanceDragTranslation(state, stepX, stepY, shiftPressed) {
+    const current = state || { x: 0, y: 0, shiftActive: false, axis: null, pendingX: 0, pendingY: 0 };
+    if (!shiftPressed) return {
+      x: current.x + stepX, y: current.y + stepY,
+      shiftActive: false, axis: null, pendingX: 0, pendingY: 0
+    };
+    if (current.shiftActive && current.axis) return {
+      x: current.x + (current.axis === 'x' ? stepX : 0),
+      y: current.y + (current.axis === 'y' ? stepY : 0),
+      shiftActive: true, axis: current.axis, pendingX: 0, pendingY: 0
+    };
+    const pendingX = (current.shiftActive ? current.pendingX : 0) + stepX;
+    const pendingY = (current.shiftActive ? current.pendingY : 0) + stepY;
+    if (Math.max(Math.abs(pendingX), Math.abs(pendingY)) < 3) return {
+      x: current.x, y: current.y, shiftActive: true, axis: null, pendingX, pendingY
+    };
+    const axis = Math.abs(pendingX) >= Math.abs(pendingY) ? 'x' : 'y';
+    return {
+      x: current.x + (axis === 'x' ? pendingX : 0),
+      y: current.y + (axis === 'y' ? pendingY : 0),
+      shiftActive: true, axis, pendingX: 0, pendingY: 0
+    };
+  }
+
   function transformSelection(boxes, operation, dx, dy, pageHeight) {
     const bounds = selectionBounds(boxes);
     if (!bounds) return [];
@@ -135,7 +161,8 @@ const T02StudioCore = (() => {
 
   return { PAPER_WIDTH, MAX_HEIGHT, DPI, LABEL_SIZES, LABEL_FRAMES, FRAME_NAMES, SHAPE_NAMES, FONT_STACKS,
     mmToPx, pxToMm, normalizeOpacity, normalizeFrameWidth, normalizeTextThickness,
-    flowLayout, clampBox, rotateBox, selectionBounds, marqueeRect, marqueeHits, transformSelection };
+    flowLayout, clampBox, rotateBox, selectionBounds, marqueeRect, marqueeHits, transformSelection,
+    advanceDragTranslation };
 })();
 
 if (typeof module !== "undefined" && module.exports) module.exports = T02StudioCore;

@@ -4,20 +4,53 @@
   const $ = id => document.getElementById(id);
   const rail = document.querySelector('.tool-sidebar');
   const drawer = $('workspace-tool-drawer');
+  const ribbon = $('workspace-inline-ribbon');
   const selectButton = $('ps-rail-select');
   const menuRoots = [...document.querySelectorAll('.workspace-menu')];
   let syncScheduled = false;
 
-  function closeDrawer() {
-    rail.classList.remove('drawer-open');
-    for (const button of document.querySelectorAll('.tool-tab.active')) button.classList.remove('active');
-    selectButton.classList.toggle('active', document.querySelector('#free-select')?.classList.contains('active'));
+  // The same input elements serve every tool, now in a contextual strip below
+  // the permanent toolbar. Moving them preserves their existing event handlers.
+  ribbon.append(drawer);
+  $('ps-history-actions').append($('undo'), $('redo'));
+  for (const panel of drawer.querySelectorAll('.tool-panel')) {
+    const oldChildren = [...panel.children];
+    const arranged = document.createDocumentFragment();
+    for (let i = 0; i < oldChildren.length; i++) {
+      const node = oldChildren[i];
+      if (node.matches('.panel-intro, .helper-line')) { arranged.append(node); continue; }
+      const group = document.createElement('div');
+      group.className = 'ribbon-field';
+      const next = oldChildren[i + 1];
+      const labelPair = node.matches('label[for]') && next?.id === node.htmlFor;
+      const rowPair = node.matches('.control-row') && next &&
+        node.querySelector('label[for]')?.htmlFor === next.id;
+      const gridPair = node.matches('.label-field-heading') && next?.matches('.label-size-grid, .label-frame-grid');
+      group.append(node);
+      if (labelPair || rowPair || gridPair) { group.append(next); i++; }
+      if (group.querySelector('textarea, .drop-target')) group.classList.add('ribbon-wide');
+      if (group.querySelector('.label-frame-grid')) group.classList.add('ribbon-frames');
+      if (group.querySelector('.label-size-grid')) group.classList.add('ribbon-sizes');
+      arranged.append(group);
+    }
+    panel.replaceChildren(arranged);
   }
 
-  function openDrawer(title) {
+  function closeDrawer() {
+    rail.classList.remove('drawer-open');
+    ribbon.classList.remove('is-open');
+    for (const button of document.querySelectorAll('.tool-tab.active')) button.classList.remove('active');
+    selectButton.classList.toggle('active', document.querySelector('#free-select')?.classList.contains('active'));
+    scheduleSync();
+  }
+
+  function openDrawer(title, tool) {
     $('workspace-drawer-title').textContent = title;
     rail.classList.add('drawer-open');
+    ribbon.classList.add('is-open');
+    ribbon.dataset.tool = tool;
     selectButton.classList.remove('active');
+    scheduleSync();
   }
 
   function syncChrome() {
@@ -26,6 +59,7 @@
     const count = active.length;
     const placeholder = $('workspace-properties-empty');
     const isText = count === 1 && !$('text-properties').classList.contains('hidden');
+    document.body.classList.toggle('workspace-text-context', isText || (ribbon.classList.contains('is-open') && ribbon.dataset.tool === 'text'));
     placeholder.classList.toggle('hidden', count === 1);
     if (count > 1) {
       $('workspace-properties-message').textContent = `${count} layers selected. Move or resize them together, or use Center on page above the canvas.`;
@@ -40,6 +74,7 @@
     $('ps-size-toggle').disabled = otherTypeSelected;
     $('ps-weight-toggle').disabled = otherTypeSelected;
     $('ps-context-opacity').disabled = count !== 1;
+    $('ps-opacity-toggle').disabled = count !== 1;
     $('ps-center-x').disabled = count === 0;
     $('ps-center-page').disabled = count === 0;
     $('ps-context-font').value = isText ? $('prop-font-family').value : $('text-font-family').value;
@@ -57,9 +92,12 @@
     $('ps-weight-slider').value = String(weightValue);
     $('ps-weight-inline').textContent = `${weightValue}/5`;
     $('ps-weight-value').textContent = `${weightValue} / 5`;
-    if (otherTypeSelected) closeAdjustPopovers();
+    if (otherTypeSelected) { closeAdjustPopover('size'); closeAdjustPopover('weight'); }
+    if (count !== 1) closeAdjustPopover('opacity');
     if (document.activeElement !== $('ps-context-opacity'))
       $('ps-context-opacity').value = count === 1 ? $('prop-opacity').value : 100;
+    $('ps-opacity-slider').value = $('ps-context-opacity').value;
+    $('ps-opacity-value').textContent = `${$('ps-context-opacity').value}%`;
     $('ps-length-control').value = $('page-height').value;
     $('ps-length-control').disabled = !document.querySelector('[data-mode="free"]')?.classList.contains('active');
     const port = $('printer-select').value;
@@ -89,7 +127,7 @@
     const name = button.textContent.trim().replace(/^\d+\s*/, '');
     button.title = name;
     button.setAttribute('aria-label', `Add ${name}`);
-    button.addEventListener('click', () => { openDrawer(name); scheduleSync(); });
+    button.addEventListener('click', () => { openDrawer(name, button.dataset.tool); scheduleSync(); });
   }
   selectButton.addEventListener('click', () => {
     $('free-select').click();
@@ -109,12 +147,13 @@
   };
   const editingText = () => !$('selection-properties').classList.contains('hidden') &&
     !$('text-properties').classList.contains('hidden');
-  const popoverIds = ['size', 'weight'];
+  const popoverIds = ['size', 'weight', 'opacity'];
+  function closeAdjustPopover(name) {
+    $(`ps-${name}-popover`).hidden = true;
+    $(`ps-${name}-toggle`).setAttribute('aria-expanded', 'false');
+  }
   function closeAdjustPopovers() {
-    for (const name of popoverIds) {
-      $(`ps-${name}-popover`).hidden = true;
-      $(`ps-${name}-toggle`).setAttribute('aria-expanded', 'false');
-    }
+    for (const name of popoverIds) closeAdjustPopover(name);
   }
   function openAdjustPopover(name) {
     if ($(`ps-${name}-toggle`).disabled) return;
@@ -130,6 +169,9 @@
   }
   $('ps-context-size').addEventListener('focus', () => {
     if ($('ps-size-popover').hidden) openAdjustPopover('size');
+  });
+  $('ps-context-opacity').addEventListener('focus', () => {
+    if ($('ps-opacity-popover').hidden) openAdjustPopover('opacity');
   });
   document.addEventListener('pointerdown', event => {
     if (!event.target.closest('.workspace-adjust-chip')) closeAdjustPopovers();
@@ -178,15 +220,26 @@
   const applyContextOpacity = () => {
     if ($('ps-context-opacity').value === '') return;
     $('ps-context-opacity').value = String(Math.max(0, Math.min(100, Number($('ps-context-opacity').value) || 0)));
+    $('ps-opacity-slider').value = $('ps-context-opacity').value;
+    $('ps-opacity-value').textContent = `${$('ps-context-opacity').value}%`;
     forward('ps-context-opacity', 'prop-opacity', 'input');
-    $('prop-opacity').dispatchEvent(new Event('change', { bubbles: true }));
   };
   $('ps-context-opacity').addEventListener('input', applyContextOpacity);
-  $('ps-context-opacity').addEventListener('change', applyContextOpacity);
+  $('ps-context-opacity').addEventListener('change', () => {
+    applyContextOpacity();
+    $('prop-opacity').dispatchEvent(new Event('change', { bubbles: true }));
+  });
+  $('ps-opacity-slider').addEventListener('input', () => {
+    $('ps-context-opacity').value = $('ps-opacity-slider').value;
+    applyContextOpacity();
+  });
+  $('ps-opacity-slider').addEventListener('change', () => {
+    $('prop-opacity').dispatchEvent(new Event('change', { bubbles: true }));
+    scheduleSync();
+  });
   $('workspace-drawer-close').addEventListener('click', closeDrawer);
-  document.querySelector('.canvas-stage').addEventListener('pointerdown', closeDrawer);
   $('ps-printer-toggle').addEventListener('click', () => {
-    openDrawer('Printer connection');
+    openDrawer('Printer connection', 'printer');
     $('printer-select').scrollIntoView({ block: 'center', behavior: 'smooth' });
   });
 

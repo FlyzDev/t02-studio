@@ -1,3 +1,12 @@
+## T02 Studio v0.3.3 · Context ribbon and constrained dragging
+
+- Clicking a left-rail tool now shows its editable options in a horizontal contextual ribbon **under** the fixed top toolbar. No floating sidebar drawer blocks the canvas; changing tools swaps the ribbon. Existing inputs and label maker controls are retained.
+- **Undo** and **Redo** are always visible on the fixed top toolbar, including while a tool is active.
+- **Opacity** now opens a matching 0–100% slider popover under its top-bar chip, with live updates to the selected layer.
+- **Shift-drag** constrains Free edit movement to the dominant X or Y axis, for one layer or a multi-selection. Releasing Shift resumes continuous free movement without jumping; Shift-click still toggles selection.
+- **Border** inserts its own independently movable, resizable frame without changing the Label designer's selected preset. The left tool rail has more breathing room and centered icons.
+- Existing project JSON, live drafts, print settings, and the 384-dot monochrome pipeline remain compatible.
+
 ## T02 Studio v0.3.2 · Inline size and weight sliders
 
 - The top **Size** chip opens a small anchored font-size slider while keeping its editable numeric value.
