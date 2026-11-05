@@ -166,7 +166,31 @@
 
     <main class="main-area">
       <header class="top-bar">
-        <div class="workspace-options" aria-live="polite"><button id="ps-active-tool" class="workspace-tool-caption" type="button" title="Activate selection tool">↖ Select</button><label class="workspace-option-chip" title="Typeface">Font <select id="ps-context-font" aria-label="Typeface"><option value="modern">Segoe UI</option><option value="classic">Georgia</option><option value="rounded">Trebuchet</option><option value="editorial">Palatino</option><option value="typewriter">Courier</option><option value="display">Impact</option></select></label><label class="workspace-option-chip" title="Text size">Size <input id="ps-context-size" type="number" min="8" max="100" value="26" aria-label="Text size">px</label><label class="workspace-option-chip" title="Text thickness">Weight <select id="ps-context-weight" aria-label="Text thickness"><option value="1">1/5</option><option value="2">2/5</option><option value="3">3/5</option><option value="4" selected>4/5</option><option value="5">5/5</option></select></label><label class="workspace-option-chip" title="Layer opacity">Opacity <input id="ps-context-opacity" type="number" min="0" max="100" value="100" aria-label="Layer opacity">%</label><button id="ps-center-x" class="workspace-center-button" type="button" disabled title="Center selected layers horizontally">Center X</button><button id="ps-center-page" class="workspace-center-button" type="button" disabled title="Center selected layers horizontally and vertically">Center on page</button></div>
+        <div class="workspace-options" aria-live="polite">
+          <button id="ps-active-tool" class="workspace-tool-caption" type="button" title="Activate selection tool">↖ Select</button>
+          <label class="workspace-option-chip" title="Typeface">Font <select id="ps-context-font" aria-label="Typeface"><option value="modern">Segoe UI</option><option value="classic">Georgia</option><option value="rounded">Trebuchet</option><option value="editorial">Palatino</option><option value="typewriter">Courier</option><option value="display">Impact</option></select></label>
+          <div class="workspace-option-chip workspace-adjust-chip" id="ps-size-chip">
+            <button id="ps-size-toggle" class="workspace-adjust-toggle" type="button" aria-expanded="false" aria-controls="ps-size-popover">Size</button>
+            <input id="ps-context-size" type="number" min="8" max="100" value="26" aria-label="Text size">px
+            <div id="ps-size-popover" class="workspace-adjust-popover" role="group" aria-label="Font size slider" hidden>
+              <div class="workspace-adjust-heading"><strong>Font size</strong><output id="ps-size-value">26 px</output></div>
+              <input id="ps-size-slider" type="range" min="8" max="100" step="1" value="26" aria-label="Adjust font size">
+              <div class="workspace-adjust-ends"><span id="ps-size-min">8 px</span><span id="ps-size-max">100 px</span></div>
+            </div>
+          </div>
+          <div class="workspace-option-chip workspace-adjust-chip" id="ps-weight-chip">
+            <button id="ps-weight-toggle" class="workspace-adjust-toggle" type="button" aria-expanded="false" aria-controls="ps-weight-popover">Weight <strong id="ps-weight-inline">4/5</strong></button>
+            <select id="ps-context-weight" class="workspace-native-hidden" tabindex="-1" aria-hidden="true"><option value="1">1/5</option><option value="2">2/5</option><option value="3">3/5</option><option value="4" selected>4/5</option><option value="5">5/5</option></select>
+            <div id="ps-weight-popover" class="workspace-adjust-popover" role="group" aria-label="Text thickness slider" hidden>
+              <div class="workspace-adjust-heading"><strong>Text thickness</strong><output id="ps-weight-value">4 / 5</output></div>
+              <input id="ps-weight-slider" type="range" min="1" max="5" step="1" value="4" aria-label="Adjust text thickness">
+              <div class="workspace-adjust-ends"><span>Light</span><span>Heavy</span></div>
+            </div>
+          </div>
+          <label class="workspace-option-chip" title="Layer opacity">Opacity <input id="ps-context-opacity" type="number" min="0" max="100" value="100" aria-label="Layer opacity">%</label>
+          <button id="ps-center-x" class="workspace-center-button" type="button" disabled title="Center selected layers horizontally">Center X</button>
+          <button id="ps-center-page" class="workspace-center-button" type="button" disabled title="Center selected layers horizontally and vertically">Center on page</button>
+        </div>
         <div class="top-actions"><label class="workspace-length-control">Length <input id="ps-length-control" type="number" min="20" max="999" value="80"> mm</label><div class="mode-switch" role="group" aria-label="Layout mode"><button class="active" type="button" data-mode="flow">Flow</button><button type="button" data-mode="free">Free edit</button></div><button type="button" id="theme-toggle" class="theme-toggle" aria-label="Switch to light theme">☼ <span>Light theme</span></button><a href="/composer" class="original-link">Legacy editor</a></div>
       </header>
 

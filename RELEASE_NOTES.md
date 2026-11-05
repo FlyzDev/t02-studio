@@ -1,3 +1,10 @@
+## T02 Studio v0.3.2 · Inline size and weight sliders
+
+- The top **Size** chip opens a small anchored font-size slider while keeping its editable numeric value.
+- The top **Weight** chip opens a matching 1–5 text-thickness slider with a live fraction indicator.
+- Both controls update the selected text as they move, remain usable as defaults for new text, and disable themselves for unrelated selections.
+- Clicking outside or pressing Escape closes the popovers; changing tools keeps the panels in sync with the selected layer.
+
 ## T02 Studio v0.3.1 · Interactive editing polish
 
 - **Marquee selection from the gray workspace:** drag a rectangle starting outside the white paper to select layers it crosses. Existing blank-paper marquee, Shift/Ctrl selection and group move/resize continue to work.

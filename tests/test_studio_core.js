@@ -88,6 +88,14 @@ for (const id of ['ps-context-font', 'ps-context-size', 'ps-context-weight', 'ps
   'ps-center-x', 'ps-center-page', 'ps-rail-select']) {
   assert.ok(workspaceMarkup.includes(`id="${id}"`), `Workspace missing interactive control ${id}`);
 }
+for (const control of ['size', 'weight']) {
+  for (const suffix of ['toggle', 'slider', 'popover', 'value']) {
+    assert.ok(workspaceMarkup.includes(`id="ps-${control}-${suffix}"`),
+      `Workspace missing ${control} popover ${suffix}`);
+  }
+  assert.ok(workspaceJs.includes(`$('ps-${control}-slider').addEventListener('input'`),
+    `Workspace missing live ${control} slider binding`);
+}
 for (const name of ['stagePointerDown', 'stagePointerMove', 'stagePointerUp', 'reorderLayer', 'centerSelection']) {
   assert.ok(source.includes(`function ${name}(`), `Workspace missing behavior ${name}`);
 }

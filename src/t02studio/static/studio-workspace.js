@@ -37,6 +37,8 @@
     $('ps-context-font').disabled = otherTypeSelected;
     $('ps-context-size').disabled = otherTypeSelected;
     $('ps-context-weight').disabled = otherTypeSelected;
+    $('ps-size-toggle').disabled = otherTypeSelected;
+    $('ps-weight-toggle').disabled = otherTypeSelected;
     $('ps-context-opacity').disabled = count !== 1;
     $('ps-center-x').disabled = count === 0;
     $('ps-center-page').disabled = count === 0;
@@ -44,6 +46,18 @@
     if (document.activeElement !== $('ps-context-size'))
       $('ps-context-size').value = isText ? $('prop-font-size').value : $('font-size').value;
     $('ps-context-weight').value = isText ? $('prop-ink-thickness').value : $('text-ink-thickness').value;
+    const sizeValue = Number($('ps-context-size').value) || 26;
+    $('ps-size-slider').min = isText ? '8' : '12';
+    $('ps-size-slider').max = isText ? '100' : '72';
+    $('ps-size-slider').value = String(sizeValue);
+    $('ps-size-value').textContent = `${sizeValue} px`;
+    $('ps-size-min').textContent = `${$('ps-size-slider').min} px`;
+    $('ps-size-max').textContent = `${$('ps-size-slider').max} px`;
+    const weightValue = Number($('ps-context-weight').value) || 4;
+    $('ps-weight-slider').value = String(weightValue);
+    $('ps-weight-inline').textContent = `${weightValue}/5`;
+    $('ps-weight-value').textContent = `${weightValue} / 5`;
+    if (otherTypeSelected) closeAdjustPopovers();
     if (document.activeElement !== $('ps-context-opacity'))
       $('ps-context-opacity').value = count === 1 ? $('prop-opacity').value : 100;
     $('ps-length-control').value = $('page-height').value;
@@ -95,6 +109,31 @@
   };
   const editingText = () => !$('selection-properties').classList.contains('hidden') &&
     !$('text-properties').classList.contains('hidden');
+  const popoverIds = ['size', 'weight'];
+  function closeAdjustPopovers() {
+    for (const name of popoverIds) {
+      $(`ps-${name}-popover`).hidden = true;
+      $(`ps-${name}-toggle`).setAttribute('aria-expanded', 'false');
+    }
+  }
+  function openAdjustPopover(name) {
+    if ($(`ps-${name}-toggle`).disabled) return;
+    const shouldOpen = $(`ps-${name}-popover`).hidden;
+    closeAdjustPopovers();
+    if (shouldOpen) {
+      $(`ps-${name}-popover`).hidden = false;
+      $(`ps-${name}-toggle`).setAttribute('aria-expanded', 'true');
+    }
+  }
+  for (const name of popoverIds) {
+    $(`ps-${name}-toggle`).addEventListener('click', () => openAdjustPopover(name));
+  }
+  $('ps-context-size').addEventListener('focus', () => {
+    if ($('ps-size-popover').hidden) openAdjustPopover('size');
+  });
+  document.addEventListener('pointerdown', event => {
+    if (!event.target.closest('.workspace-adjust-chip')) closeAdjustPopovers();
+  });
   $('ps-context-font').addEventListener('change', () => {
     forward('ps-context-font', editingText() ? 'prop-font-family' : 'text-font-family', 'change');
   });
@@ -107,9 +146,34 @@
   };
   $('ps-context-size').addEventListener('input', applyContextSize);
   $('ps-context-size').addEventListener('change', applyContextSize);
+  $('ps-size-slider').addEventListener('input', () => {
+    const value = $('ps-size-slider').value;
+    $('ps-context-size').value = value;
+    $('ps-size-value').textContent = `${value} px`;
+    if (editingText()) {
+      $('prop-font-size-range').value = value;
+      $('prop-font-size-range').dispatchEvent(new Event('input', { bubbles: true }));
+      scheduleSync();
+    } else applyContextSize();
+  });
+  $('ps-size-slider').addEventListener('change', () => {
+    if (editingText()) $('prop-font-size-range').dispatchEvent(new Event('change', { bubbles: true }));
+    scheduleSync();
+  });
   $('ps-context-weight').addEventListener('change', () => {
     const editing = editingText();
     forward('ps-context-weight', editing ? 'prop-ink-thickness' : 'text-ink-thickness', 'input');
+  });
+  $('ps-weight-slider').addEventListener('input', () => {
+    const value = $('ps-weight-slider').value;
+    $('ps-context-weight').value = value;
+    $('ps-weight-inline').textContent = `${value}/5`;
+    $('ps-weight-value').textContent = `${value} / 5`;
+    forward('ps-context-weight', editingText() ? 'prop-ink-thickness' : 'text-ink-thickness', 'input');
+  });
+  $('ps-weight-slider').addEventListener('change', () => {
+    if (editingText()) $('prop-ink-thickness').dispatchEvent(new Event('change', { bubbles: true }));
+    scheduleSync();
   });
   const applyContextOpacity = () => {
     if ($('ps-context-opacity').value === '') return;
@@ -170,6 +234,7 @@
   applyZoom();
 
   document.addEventListener('keydown', event => {
+    if (event.key === 'Escape') closeAdjustPopovers();
     const target = event.target;
     const typing = target instanceof HTMLElement && (target.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName));
     if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 's') {
