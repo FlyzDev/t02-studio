@@ -1,0 +1,14 @@
+.git
+.github
+.venv
+__pycache__
+*.pyc
+*.log
+.env
+runtime
+instance
+tests
+docs
+examples
+*.zip
+*.spec

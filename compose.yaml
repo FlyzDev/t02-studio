@@ -1,0 +1,34 @@
+services:
+  t02-studio:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: t02-studio:local
+    container_name: t02-studio
+    restart: unless-stopped
+    ports:
+      # Localhost by default; override with a trusted private LAN IP in .env.
+      - "${T02_LAN_IP:-127.0.0.1}:8062:8062"
+    environment:
+      # OrbStack/Docker proxies may present a private bridge IP to Flask.
+      # Host port binding and router isolation are the primary LAN controls.
+      T02_ALLOWED_NETWORKS: "10.0.0.0/24,192.168.0.0/16,172.16.0.0/12"
+    read_only: true
+    tmpfs:
+      - /tmp:size=128m,mode=1777
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    pids_limit: 128
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8062/api/printer-profiles', timeout=4).read()"]
+      start_period: 30s
+      interval: 30s
+      timeout: 6s
+      retries: 3
+    logging:
+      driver: json-file
+      options:
+        max-size: "5m"
+        max-file: "3"

@@ -96,6 +96,16 @@ The new shapes inherit the same free-positioning, opacity, sizing, rotation, und
 
 These are layout presets for **53 mm continuous-roll paper** with approximately 50 mm of artwork width. They are not calibration profiles for precut die-cut stickers or separate label media. Font appearance may vary if another computer does not have the same desktop fonts; exporting a PNG rasterizes the chosen appearance.
 
+## Always-on Mac mini / Docker
+
+For a persistent self-hosted label-design workspace, use the included [Docker Compose setup](docs/mac-mini-docker.md):
+
+```sh
+docker compose up -d --build
+```
+
+It listens only on the configured private LAN IP and restarts automatically with the Docker engine. **Windows Bluetooth COM printing does not work inside the Linux container**; use the Windows application for physical T02 printing. Projects are saved by the browser, not by a Docker volume.
+
 ## Quick start (Windows)
 
 If you are not developing the app, use the standalone EXE linked above. The steps below are for running from source.
