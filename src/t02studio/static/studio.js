@@ -1326,7 +1326,7 @@ async function discoverPrinters() {
   const select = $("printer-select");
   const refresh = $("discover-printers");
   refresh.disabled = true;
-  $("printer-status").textContent = "Scanning paired serial ports…";
+  $("printer-status").textContent = "Checking available printer connections…";
   try {
     const response = await apiError(await fetch("/api/printers", { cache: "no-store" }));
     const data = await response.json();
@@ -1356,8 +1356,8 @@ async function discoverPrinters() {
     select.value = port;
     work.printerPort = port;
     $("printer-help").textContent = work.printers.length ?
-      "Only paired OS serial ports appear here. Choose the printer's outgoing Bluetooth COM port." :
-      "Pair the printer in Windows Bluetooth settings, then rescan. Nearby unpaired devices are not scanned.";
+      "Choose Mac mini Bluetooth (when available) or a paired Windows COM port." :
+      "No printer connection available. Check that the Bluetooth bridge or Windows pairing is running.";
     $("printer-status").textContent = port ? `${port} selected · not physically verified` : "Choose a port to enable printing";
     $("status-led").className = port ? "good" : "bad";
   } catch {

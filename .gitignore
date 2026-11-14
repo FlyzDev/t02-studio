@@ -8,3 +8,6 @@ instance/
 runtime/
 *.log
 *.zip
+
+# Locally compiled macOS Bluetooth helper
+build/

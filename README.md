@@ -104,7 +104,7 @@ For a persistent self-hosted label-design workspace, use the included [Docker Co
 docker compose up -d --build
 ```
 
-It listens only on the configured private LAN IP and restarts automatically with the Docker engine. **Windows Bluetooth COM printing does not work inside the Linux container**; use the Windows application for physical T02 printing. Projects are saved by the browser, not by a Docker volume.
+It listens only on the configured private LAN IP and restarts automatically with the Docker engine. **Windows Bluetooth COM printing does not work inside the Linux container**; on macOS, an authenticated, localhost-only RFCOMM host bridge can print directly to a nearby T02. See [Mac mini setup](docs/mac-mini-docker.md). Projects are saved by the browser, not by a Docker volume.
 
 ## Quick start (Windows)
 

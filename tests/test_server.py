@@ -57,6 +57,34 @@ class ServerTests(unittest.TestCase):
         self.assertTrue(response.json["ports"][1]["likely_printer"])
         self.assertEqual([], self.jobs)
 
+    def test_mac_bridge_appears_and_prints_only_when_healthy(self):
+        from unittest.mock import patch
+        self.app.config["BRIDGE_TOKEN"] = "test-token"
+        self.app.config["BRIDGE_URL"] = "http://bridge.invalid"
+        calls = []
+        def send(image, port, token, url):
+            calls.append((port, token, url))
+            return PrintResult(port_name=port, bytes_written=111)
+        self.app.config["BRIDGE_PRINT_FUNCTION"] = send
+        with patch("t02studio.server.bridge_visible", return_value=True):
+            printers = self.client.get("/api/printers")
+            self.assertEqual("MAC_T02", printers.json["ports"][0]["port"])
+            response = self.client.post("/api/print", data={
+                "kind": "text", "text": "Mac bridge", "printer_port": "MAC_T02",
+                "job_id": "f059bb0e-08a1-4fd8-8f03-cf97c64d8c31"})
+        self.assertEqual(200, response.status_code)
+        self.assertEqual("MAC_T02", response.json["port"])
+        self.assertEqual([("MAC_T02", "test-token", "http://bridge.invalid")], calls)
+
+    def test_mac_bridge_unavailable_rejects_physical_print(self):
+        self.app.config["BRIDGE_TOKEN"] = "test-token"
+        with patch("t02studio.server.bridge_visible", return_value=False):
+            response = self.client.post("/api/print", data={
+                "kind": "text", "text": "No output", "printer_port": "MAC_T02",
+                "job_id": "f059bb0e-08a1-4fd8-8f03-cf97c64d8c32"})
+        self.assertEqual(503, response.status_code)
+        self.assertEqual([], self.jobs)
+
     def test_printer_profile_api_only_advertises_verified_hardware(self):
         response = self.client.get("/api/printer-profiles")
         self.assertEqual(200, response.status_code)

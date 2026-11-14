@@ -238,8 +238,8 @@ async function updateStatus() {
       `${item.likely_printer ? "★ " : ""}${item.port} · ${item.description} (${item.transport})`, item.port));
     selector.disabled = !ports.length;
     selector.value = printerPort;
-    $("printer-help").textContent = ports.length ? "Choose your printer's outgoing Bluetooth COM port." :
-      "Pair it in Windows Bluetooth settings, then rescan. Discovery does not pair devices.";
+    $("printer-help").textContent = ports.length ? "Select Mac mini Bluetooth or the printer's outgoing Windows COM port." :
+      "No printer available. Check Mac mini bridge or Windows Bluetooth pairing.";
     $("printer-status").textContent = printerPort ? `${printerPort} selected · not physically verified` : "Choose a printer port";
     $("status-led").classList.toggle("ok", !!printerPort);
     $("status-led").classList.toggle("bad", !printerPort);

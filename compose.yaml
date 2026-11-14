@@ -13,6 +13,9 @@ services:
       # OrbStack/Docker proxies may present a private bridge IP to Flask.
       # Host port binding and router isolation are the primary LAN controls.
       T02_ALLOWED_NETWORKS: "10.0.0.0/24,192.168.0.0/16,172.16.0.0/12"
+      # Host-local authenticated macOS Bluetooth RFCOMM bridge.
+      T02_BRIDGE_URL: "http://host.docker.internal:8063"
+      T02_BRIDGE_TOKEN: "${T02_BRIDGE_TOKEN:-}"
     read_only: true
     tmpfs:
       - /tmp:size=128m,mode=1777

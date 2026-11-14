@@ -14,6 +14,7 @@ from flask import Flask, jsonify, render_template, request, send_file
 from werkzeug.exceptions import RequestEntityTooLarge
 
 from .discovery import available_ports
+from .mac_bridge import MAC_PRINTER_PORT, bridge_port, bridge_visible, print_via_bridge
 from .pdf import render_pdf_segments
 from .printer import PrinterBusy, PrinterError, PrinterUnavailable, print_image
 from .profiles import T02_PROFILE, VERIFIED_PROFILES, verified_profile
@@ -89,6 +90,9 @@ def create_app(config: dict | None = None) -> Flask:
         ipaddress.ip_network(net, strict=False)
     app.config.update(
         COM_PORT=os.environ.get("T02_COM_PORT", "").upper(),
+        BRIDGE_TOKEN=os.environ.get("T02_BRIDGE_TOKEN", ""),
+        BRIDGE_URL=os.environ.get("T02_BRIDGE_URL", "http://host.docker.internal:8063"),
+        BRIDGE_PRINT_FUNCTION=print_via_bridge,
         PORT_LIST_FUNCTION=available_ports,
         ALLOWED_NETWORKS=allowlist,
         MAX_CONTENT_LENGTH=35 * 1024 * 1024,
@@ -98,6 +102,12 @@ def create_app(config: dict | None = None) -> Flask:
         app.config.update(config)
     job_lock = threading.Lock()
     attempted_jobs: dict[str, float] = {}
+
+    def printer_ports():
+        discovered = app.config["PORT_LIST_FUNCTION"]()
+        if bridge_visible(app.config["BRIDGE_TOKEN"], app.config["BRIDGE_URL"]):
+            return [bridge_port(), *discovered]
+        return discovered
 
     @app.before_request
     def restrict_network():
@@ -139,16 +149,22 @@ def create_app(config: dict | None = None) -> Flask:
     @app.get("/api/status")
     def status():
         port_name = app.config["COM_PORT"]
-        visible = any(item["port"] == port_name for item in app.config["PORT_LIST_FUNCTION"]())
+        if not port_name and bridge_visible(app.config["BRIDGE_TOKEN"], app.config["BRIDGE_URL"]):
+            port_name = MAC_PRINTER_PORT
+        visible = any(item["port"] == port_name for item in printer_ports())
         return jsonify(port=port_name, port_visible=visible,
                        message="A listed port does not guarantee the printer is powered on")
 
     @app.get("/api/printers")
     def printers():
-        return jsonify(ports=app.config["PORT_LIST_FUNCTION"](),
-                       configured_port=app.config["COM_PORT"],
-                       hint="Pair the printer in Windows Bluetooth settings first, then rescan. "
-                            "Only existing serial ports are listed; discovery never sends data.")
+        ports = printer_ports()
+        configured = app.config["COM_PORT"]
+        if not configured and any(item["port"] == MAC_PRINTER_PORT for item in ports):
+            configured = MAC_PRINTER_PORT
+        return jsonify(ports=ports,
+                       configured_port=configured,
+                       hint="Select the Mac mini Bluetooth bridge or a paired Windows serial port. "
+                            "Discovery never sends print data.")
 
     @app.get("/api/printer-profiles")
     def printer_profiles():
@@ -181,9 +197,9 @@ def create_app(config: dict | None = None) -> Flask:
             image, segment_index, total_segments = _render_request()
             job_id = str(uuid.UUID(request.form.get("job_id", "")))
             port_name = (request.form.get("printer_port") or app.config["COM_PORT"]).strip().upper()
-            if not re.fullmatch(r"COM[1-9]\d{0,2}", port_name):
+            if port_name != MAC_PRINTER_PORT and not re.fullmatch(r"COM[1-9]\d{0,2}", port_name):
                 raise PrinterUnavailable("Select a detected printer port before printing")
-            if not any(item["port"] == port_name for item in app.config["PORT_LIST_FUNCTION"]()):
+            if not any(item["port"] == port_name for item in printer_ports()):
                 raise PrinterUnavailable(f"{port_name} is no longer available. Rescan and select a port.")
         except PrinterUnavailable as exc:
             return jsonify(error=str(exc)), 503
@@ -198,7 +214,11 @@ def create_app(config: dict | None = None) -> Flask:
                 return jsonify(error="This print job was already submitted; click again for a new job"), 409
             attempted_jobs[job_id] = now
         try:
-            result = app.config["PRINT_FUNCTION"](image, port_name)
+            if port_name == MAC_PRINTER_PORT:
+                result = app.config["BRIDGE_PRINT_FUNCTION"](
+                    image, port_name, app.config["BRIDGE_TOKEN"], app.config["BRIDGE_URL"])
+            else:
+                result = app.config["PRINT_FUNCTION"](image, port_name)
         except PrinterBusy as exc:
             return jsonify(error=str(exc)), 409
         except PrinterUnavailable as exc:
